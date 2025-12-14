@@ -1,0 +1,52 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+/Packages
+Package.resolved
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# WebAssembly build artifacts
+*.wasm
+*.wat
+*.wasm.map
+
+# Node.js (for JS glue code)
+node_modules/
+npm-debug.log*
+yarn-error.log
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Credentials
+.netrc
+*.pem
+*.p12
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
