@@ -191,6 +191,20 @@ public struct SpriteView: SwiftUI.View {
             }
             .background(backgroundColor)
             .focusable()
+            .onKeyPress(phases: .down) { keyPress in
+                if let inputKey = mapKeyToInput(keyPress.key) {
+                    controller.handleKeyDown(inputKey)
+                    return .handled
+                }
+                return .ignored
+            }
+            .onKeyPress(phases: .up) { keyPress in
+                if let inputKey = mapKeyToInput(keyPress.key) {
+                    controller.handleKeyUp(inputKey)
+                    return .handled
+                }
+                return .ignored
+            }
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
@@ -426,6 +440,31 @@ public struct SpriteView: SwiftUI.View {
                 )
                 ctx.stroke(swiftPath, with: .color(strokeColor.swiftUIColor), style: style)
             }
+        }
+    }
+
+    // MARK: - Keyboard Mapping
+
+    private func mapKeyToInput(_ key: KeyEquivalent) -> SpriteViewController.InputKey? {
+        switch key {
+        case .upArrow:
+            return .up
+        case .downArrow:
+            return .down
+        case .leftArrow:
+            return .left
+        case .rightArrow:
+            return .right
+        case "z", "Z", .space:
+            return .action   // Z/Space = shoot (action)
+        case "x", "X":
+            return .action2  // X = jump (action2)
+        case "c", "C":
+            return .down     // C = dash (mapped to down for now)
+        case .escape, "p", "P":
+            return .pause
+        default:
+            return nil
         }
     }
 
