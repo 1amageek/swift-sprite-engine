@@ -104,7 +104,21 @@ public final class SNTexture: @unchecked Sendable {
         self.filteringMode = texture.filteringMode
         self.usesMipmaps = texture.usesMipmaps
         #if canImport(CoreGraphics) && !arch(wasm32)
-        self._cgImage = texture._cgImage
+        // Crop the CGImage if source has one
+        if let sourceCGImage = texture._cgImage {
+            let imgWidth = CGFloat(sourceCGImage.width)
+            let imgHeight = CGFloat(sourceCGImage.height)
+            let cropRect = CGRect(
+                x: CGFloat(rect.x) * imgWidth,
+                y: CGFloat(rect.y) * imgHeight,
+                width: CGFloat(rect.width) * imgWidth,
+                height: CGFloat(rect.height) * imgHeight
+            )
+            self._cgImage = sourceCGImage.cropping(to: cropRect)
+            if let cropped = self._cgImage {
+                self._size = Size(width: Float(cropped.width), height: Float(cropped.height))
+            }
+        }
         #endif
     }
 
