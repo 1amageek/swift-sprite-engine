@@ -503,3 +503,81 @@ public enum PathElement: Sendable {
     /// Closes the current subpath.
     case closeSubpath
 }
+
+// MARK: - Codable
+
+extension PathElement: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case type, point, control, control1, control2, end
+    }
+
+    private enum ElementType: String, Codable {
+        case moveTo, lineTo, quadCurveTo, curveTo, closeSubpath
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(ElementType.self, forKey: .type)
+
+        switch type {
+        case .moveTo:
+            let point = try container.decode(Point.self, forKey: .point)
+            self = .moveTo(point)
+        case .lineTo:
+            let point = try container.decode(Point.self, forKey: .point)
+            self = .lineTo(point)
+        case .quadCurveTo:
+            let control = try container.decode(Point.self, forKey: .control)
+            let end = try container.decode(Point.self, forKey: .end)
+            self = .quadCurveTo(control, end)
+        case .curveTo:
+            let control1 = try container.decode(Point.self, forKey: .control1)
+            let control2 = try container.decode(Point.self, forKey: .control2)
+            let end = try container.decode(Point.self, forKey: .end)
+            self = .curveTo(control1, control2, end)
+        case .closeSubpath:
+            self = .closeSubpath
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        switch self {
+        case .moveTo(let point):
+            try container.encode(ElementType.moveTo, forKey: .type)
+            try container.encode(point, forKey: .point)
+        case .lineTo(let point):
+            try container.encode(ElementType.lineTo, forKey: .type)
+            try container.encode(point, forKey: .point)
+        case .quadCurveTo(let control, let end):
+            try container.encode(ElementType.quadCurveTo, forKey: .type)
+            try container.encode(control, forKey: .control)
+            try container.encode(end, forKey: .end)
+        case .curveTo(let control1, let control2, let end):
+            try container.encode(ElementType.curveTo, forKey: .type)
+            try container.encode(control1, forKey: .control1)
+            try container.encode(control2, forKey: .control2)
+            try container.encode(end, forKey: .end)
+        case .closeSubpath:
+            try container.encode(ElementType.closeSubpath, forKey: .type)
+        }
+    }
+}
+
+extension ShapePath: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case elements
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let elements = try container.decode([PathElement].self, forKey: .elements)
+        self.init(elements: elements)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(elements, forKey: .elements)
+    }
+}
