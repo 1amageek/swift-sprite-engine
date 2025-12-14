@@ -190,26 +190,11 @@ public struct SpriteView: SwiftUI.View {
                 }
             }
             .background(backgroundColor)
-            .focusable()
-            .onKeyPress(phases: .down) { keyPress in
-                if let inputKey = mapKeyToInput(keyPress.key) {
-                    controller.handleKeyDown(inputKey)
-                    return .handled
-                }
-                return .ignored
-            }
-            .onKeyPress(phases: .up) { keyPress in
-                if let inputKey = mapKeyToInput(keyPress.key) {
-                    controller.handleKeyUp(inputKey)
-                    return .handled
-                }
-                return .ignored
-            }
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
                         controller.handlePointerMove(at: value.location, in: geometry.size)
-                        if !controller.view.gameLoop.input.pointerDown {
+                        if !controller.view.input.pointerDown {
                             controller.handlePointerDown()
                         }
                     }
@@ -443,31 +428,6 @@ public struct SpriteView: SwiftUI.View {
         }
     }
 
-    // MARK: - Keyboard Mapping
-
-    private func mapKeyToInput(_ key: KeyEquivalent) -> SpriteViewController.InputKey? {
-        switch key {
-        case .upArrow:
-            return .up
-        case .downArrow:
-            return .down
-        case .leftArrow:
-            return .left
-        case .rightArrow:
-            return .right
-        case "z", "Z", .space:
-            return .action   // Z/Space = shoot (action)
-        case "x", "X":
-            return .action2  // X = jump (action2)
-        case "c", "C":
-            return .down     // C = dash (mapped to down for now)
-        case .escape, "p", "P":
-            return .pause
-        default:
-            return nil
-        }
-    }
-
     private func renderAudioIndicator(context: inout GraphicsContext, size: CGSize) {
         let iconSize: CGFloat = 20
         let padding: CGFloat = 10
@@ -508,11 +468,6 @@ internal class SpriteViewController: ObservableObject {
 
     private var lastUpdate: Date?
     private var isRunning: Bool = false
-    private var keysDown: Set<InputKey> = []
-
-    enum InputKey {
-        case up, down, left, right, action, action2, pause
-    }
 
     init(scene: SNScene, isPaused: Bool, preferredFramesPerSecond: Int) {
         self.view = SNView()
@@ -545,32 +500,13 @@ internal class SpriteViewController: ObservableObject {
         }
         lastUpdate = date
 
-        // Build input state from keyboard
-        var input = view.gameLoop.input
-        input.up = keysDown.contains(.up)
-        input.down = keysDown.contains(.down)
-        input.left = keysDown.contains(.left)
-        input.right = keysDown.contains(.right)
-        input.action = keysDown.contains(.action)
-        input.action2 = keysDown.contains(.action2)
-        input.pause = keysDown.contains(.pause)
-
-        // Update view
-        view.gameLoop.input = input
+        // Update view (input is managed externally via scene.input)
         if dt > 0 && dt < 0.25 {
             view.update(deltaTime: dt)
         }
     }
 
-    // MARK: - Input Handling
-
-    func handleKeyDown(_ key: InputKey) {
-        keysDown.insert(key)
-    }
-
-    func handleKeyUp(_ key: InputKey) {
-        keysDown.remove(key)
-    }
+    // MARK: - Pointer Input
 
     func handlePointerMove(at location: CGPoint, in size: CGSize) {
         view.gameLoop.input.pointerPosition = Point(

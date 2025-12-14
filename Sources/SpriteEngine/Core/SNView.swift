@@ -239,6 +239,17 @@ public final class SNView: @unchecked Sendable {
         return count
     }
 
+    // MARK: - Input
+
+    /// The current input state.
+    ///
+    /// Set this property to update the input state that will be passed to the scene.
+    /// The scene's `input` property is synchronized with this value each frame.
+    public var input: InputState {
+        get { gameLoop.input }
+        set { gameLoop.input = newValue }
+    }
+
     // MARK: - Internal
 
     /// The game loop managing updates.
