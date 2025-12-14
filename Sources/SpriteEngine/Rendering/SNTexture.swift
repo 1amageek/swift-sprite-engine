@@ -78,7 +78,7 @@ public final class SNTexture: @unchecked Sendable {
 
         #if arch(wasm32)
         // WASM: Build full path using Engine configuration
-        let assetPath = Engine.configuration.assetPath
+        let assetPath = Engine.shared.assetPath
         let fullPath = assetPath.isEmpty ? imageNamed : "\(assetPath)/\(imageNamed)"
 
         // Request JavaScript to load the texture
@@ -98,13 +98,38 @@ public final class SNTexture: @unchecked Sendable {
     ///   - rect: Rectangle in unit coordinate space [0, 1].
     ///   - texture: The source texture.
     public convenience init(rect: Rect, in texture: SNTexture) {
-        self.init(name: texture.name, textureID: texture.textureID)
+        #if arch(wasm32)
+        // WASM: Use the source texture's ID and rely on textureRect for UV cropping.
+        // The GPU already has the full texture loaded, so we just reference it with different UVs.
+        self.init(name: "\(texture.name)#\(rect.x),\(rect.y)", textureID: texture.textureID)
         self._textureRect = rect
         self.sourceTexture = texture
         self.filteringMode = texture.filteringMode
         self.usesMipmaps = texture.usesMipmaps
-        #if canImport(CoreGraphics) && !arch(wasm32)
-        // Crop the CGImage if source has one
+
+        // Calculate size from source texture size and rect
+        if let sourceSize = texture._size {
+            self._size = Size(
+                width: sourceSize.width * rect.width,
+                height: sourceSize.height * rect.height
+            )
+        }
+        #else
+        // Native: Generate new texture ID for cropped CGImage
+        let newID = TextureID(rawValue: SNTexture.nextNativeID)
+        SNTexture.nextNativeID += 1
+
+        self.init(name: "\(texture.name)#\(rect.x),\(rect.y)", textureID: newID)
+        self._textureRect = rect
+        self.sourceTexture = texture
+        self.filteringMode = texture.filteringMode
+        self.usesMipmaps = texture.usesMipmaps
+
+        #if canImport(CoreGraphics)
+        // Force load source texture if needed
+        texture.loadFromBundleIfNeeded()
+
+        // Crop the CGImage for native rendering
         if let sourceCGImage = texture._cgImage {
             let imgWidth = CGFloat(sourceCGImage.width)
             let imgHeight = CGFloat(sourceCGImage.height)
@@ -114,11 +139,14 @@ public final class SNTexture: @unchecked Sendable {
                 width: CGFloat(rect.width) * imgWidth,
                 height: CGFloat(rect.height) * imgHeight
             )
-            self._cgImage = sourceCGImage.cropping(to: cropRect)
-            if let cropped = self._cgImage {
+            if let cropped = sourceCGImage.cropping(to: cropRect) {
+                self._cgImage = cropped
                 self._size = Size(width: Float(cropped.width), height: Float(cropped.height))
+                // Register in cache for PreviewRenderer
+                SNTexture.imageCache[newID] = cropped
             }
         }
+        #endif
         #endif
     }
 
@@ -143,6 +171,17 @@ public final class SNTexture: @unchecked Sendable {
 
     // MARK: - Size
 
+    #if arch(wasm32)
+    /// WASM: Global cache for texture sizes (textureID → Size).
+    /// Updated by `wisp_onTextureLoaded` when JS finishes loading.
+    nonisolated(unsafe) internal static var sizeCache: [TextureID: Size] = [:]
+
+    /// Updates the size cache for a texture ID (called from WASM bridge).
+    internal static func updateSizeCache(textureID: TextureID, size: Size) {
+        sizeCache[textureID] = size
+    }
+    #endif
+
     /// The size of the texture in points.
     public var size: Size {
         if let cached = _size {
@@ -150,7 +189,17 @@ public final class SNTexture: @unchecked Sendable {
         }
 
         #if arch(wasm32)
-        // WASM: Size is set when JS calls wisp_onTextureLoaded
+        // WASM: Check global size cache (populated by wisp_onTextureLoaded)
+        if let cachedSize = SNTexture.sizeCache[textureID] {
+            // For sub-textures, scale by textureRect
+            if sourceTexture != nil {
+                return Size(
+                    width: cachedSize.width * _textureRect.width,
+                    height: cachedSize.height * _textureRect.height
+                )
+            }
+            return cachedSize
+        }
         return .zero
         #else
         // Native: Load from bundle if needed
@@ -303,7 +352,7 @@ public final class SNTexture: @unchecked Sendable {
 
     #if canImport(ImageIO) && canImport(Foundation)
     /// Loads image from bundle if not already loaded.
-    private func loadFromBundleIfNeeded() {
+    internal func loadFromBundleIfNeeded() {
         guard _cgImage == nil, !name.isEmpty else { return }
 
         guard let url = findImageURL(name: name),
@@ -321,7 +370,7 @@ public final class SNTexture: @unchecked Sendable {
 
     /// Finds the image URL in the bundle.
     private func findImageURL(name: String) -> URL? {
-        let bundle = Bundle.main
+        let bundle = Engine.shared.resourceBundle
 
         // Try exact path
         if let url = bundle.url(forResource: name, withExtension: nil) {
@@ -344,8 +393,15 @@ public final class SNTexture: @unchecked Sendable {
             }
         }
 
-        // Try Resources subdirectory
+        // Try Resources subdirectory (for SwiftPM packages)
         if let resourceURL = bundle.resourceURL {
+            // Try with Resources prefix
+            let resourcesPath = resourceURL.appendingPathComponent("Resources").appendingPathComponent(name)
+            if FileManager.default.fileExists(atPath: resourcesPath.path) {
+                return resourcesPath
+            }
+
+            // Try direct path
             let directURL = resourceURL.appendingPathComponent(name)
             if FileManager.default.fileExists(atPath: directURL.path) {
                 return directURL
@@ -355,7 +411,7 @@ public final class SNTexture: @unchecked Sendable {
         return nil
     }
     #else
-    private func loadFromBundleIfNeeded() {}
+    internal func loadFromBundleIfNeeded() {}
     #endif
     #endif
 }

@@ -71,6 +71,7 @@ public final class SNView: @unchecked Sendable {
             incomingScene = scene
             activeTransition = transition
             transitionProgress = 0
+            transitionAccumulator = 0
 
             // Setup incoming scene
             scene.view = self
@@ -118,6 +119,9 @@ public final class SNView: @unchecked Sendable {
 
     /// Progress of the current transition (0 to 1).
     private var transitionProgress: Float = 0
+
+    /// Time accumulator for fixed timestep updates during transitions.
+    private var transitionAccumulator: Float = 0
 
     /// Whether a transition is currently in progress.
     public var isTransitioning: Bool {
@@ -296,15 +300,31 @@ public final class SNView: @unchecked Sendable {
     }
 
     private func updateTransition(deltaTime: Float, transition: SNTransition) {
-        // Update transition progress
+        // Update transition progress (visual only, uses real time)
         transitionProgress += deltaTime / transition.duration
 
-        // Update scenes if not paused
-        if let outgoing = outgoingScene, !transition.pausesOutgoingScene {
-            outgoing.processFrame(dt: deltaTime)
-        }
-        if let incoming = incomingScene, !transition.pausesIncomingScene {
-            incoming.processFrame(dt: deltaTime)
+        // Update scenes using fixed timestep for deterministic game logic
+        let fixedDt = gameLoop.fixedTimestep
+
+        // Accumulate time and process fixed timesteps
+        transitionAccumulator += deltaTime
+        while transitionAccumulator >= fixedDt {
+            // Propagate input to scenes during transition
+            let currentInput = gameLoop.input
+
+            if let outgoing = outgoingScene, !transition.pausesOutgoingScene {
+                outgoing.input = currentInput
+                outgoing.processFrame(dt: fixedDt)
+            }
+            if let incoming = incomingScene, !transition.pausesIncomingScene {
+                incoming.input = currentInput
+                incoming.processFrame(dt: fixedDt)
+            }
+
+            // Clear edge flags after processing
+            gameLoop.input.clearEdgeFlags()
+
+            transitionAccumulator -= fixedDt
         }
 
         // Check if transition is complete
@@ -335,6 +355,7 @@ public final class SNView: @unchecked Sendable {
         incomingScene = nil
         activeTransition = nil
         transitionProgress = 0
+        transitionAccumulator = 0
     }
 
     // MARK: - Rendering

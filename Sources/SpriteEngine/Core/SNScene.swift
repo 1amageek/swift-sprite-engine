@@ -74,11 +74,6 @@ open class SNScene: SNEffectNode {
     /// The camera must be added to the scene's node tree before being assigned.
     public var camera: SNCamera?
 
-    // MARK: - Timing
-
-    /// The fixed timestep for updates (default: 1/60 second).
-    public var fixedTimestep: Float = 1.0 / 60.0
-
     // MARK: - Physics
 
     /// The physics world for this scene.
@@ -370,16 +365,15 @@ open class SNScene: SNEffectNode {
     }
 
     private func evaluateActionsRecursive(on node: SNNode, dt: Float) {
-        // Evaluate actions on this node
+        // Evaluate actions on this node in insertion order (deterministic)
         var completedKeys: [String] = []
         for (key, action) in node.actions {
             if action.evaluate(on: node, dt: dt) {
                 completedKeys.append(key)
             }
         }
-        for key in completedKeys {
-            node.actions.removeValue(forKey: key)
-        }
+        // Remove completed actions
+        node.actions.removeAll { completedKeys.contains($0.key) }
 
         // Recurse into children
         for child in node.children {

@@ -47,6 +47,9 @@ public final class GameLoop: @unchecked Sendable {
     /// Number of updates performed in the last tick.
     public private(set) var updatesThisTick: Int = 0
 
+    /// Total number of frames processed (for deterministic logging).
+    public private(set) var frameCount: UInt64 = 0
+
     /// Current update rate (updates per second).
     public var updatesPerSecond: Float {
         1.0 / fixedTimestep
@@ -113,6 +116,9 @@ public final class GameLoop: @unchecked Sendable {
             return
         }
 
+        // Increment frame counter (for deterministic logging)
+        frameCount += 1
+
         // Update input with edge detection
         self.input = input
         self.input.updateEdgeDetection(previousPointerDown: previousPointerDown)
@@ -178,6 +184,7 @@ public final class GameLoop: @unchecked Sendable {
     public func reset() {
         accumulator = 0
         totalTime = 0
+        frameCount = 0
         input = InputState()
         previousPointerDown = false
         updatesThisTick = 0

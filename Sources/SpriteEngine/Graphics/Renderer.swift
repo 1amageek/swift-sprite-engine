@@ -100,6 +100,15 @@ public final class Renderer: @unchecked Sendable {
     /// Last update time for frame calculations.
     private var lastUpdateTime: Double = 0
 
+    /// Time accumulator for fixed timestep updates.
+    private var accumulator: Float = 0
+
+    /// Fixed timestep for deterministic updates (default: 1/60 second).
+    public var fixedTimestep: Float = 1.0 / 60.0
+
+    /// Maximum time to process per frame to prevent spiral of death.
+    public var maxFrameTime: Float = 0.25
+
     // MARK: - Initialization
 
     /// Creates a renderer with the specified device.
@@ -123,7 +132,8 @@ public final class Renderer: @unchecked Sendable {
 
     /// Drives the scene's update cycle at the specified time.
     ///
-    /// This method calls the scene's delegate functions in the proper order:
+    /// This method uses a fixed timestep accumulator to ensure deterministic updates.
+    /// It calls the scene's delegate functions in the proper order:
     /// 1. `update(currentTime:)` - Called first to allow game logic
     /// 2. Actions are evaluated
     /// 3. Physics simulation runs
@@ -143,12 +153,19 @@ public final class Renderer: @unchecked Sendable {
         if lastUpdateTime > 0 {
             dt = Float(time - lastUpdateTime)
         } else {
-            dt = 1.0 / 60.0
+            dt = fixedTimestep
         }
         lastUpdateTime = time
 
-        // Process the scene's frame cycle
-        scene.processFrame(dt: dt)
+        // Clamp to prevent spiral of death
+        let frameTime = min(dt, maxFrameTime)
+        accumulator += frameTime
+
+        // Fixed timestep updates for deterministic behavior
+        while accumulator >= fixedTimestep {
+            scene.processFrame(dt: fixedTimestep)
+            accumulator -= fixedTimestep
+        }
     }
 
     // MARK: - Rendering

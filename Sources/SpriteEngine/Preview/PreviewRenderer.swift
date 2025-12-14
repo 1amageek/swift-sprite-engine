@@ -292,9 +292,10 @@ public class SNSceneController: ObservableObject {
         let dt = Float(date.timeIntervalSince(last))
         lastUpdate = date
 
-        // Use fixed timestep
+        // Use fixed timestep (1/60 second)
+        let fixedTimestep: Float = 1.0 / 60.0
         if dt > 0 && dt < 0.1 {
-            scene.processFrame(dt: scene.fixedTimestep)
+            scene.processFrame(dt: fixedTimestep)
         }
     }
 }
@@ -591,9 +592,11 @@ public class SNInteractiveSceneController: ObservableObject {
         let dt = Float(date.timeIntervalSince(last))
         lastUpdate = date
 
+        // Use fixed timestep (1/60 second)
+        let fixedTimestep: Float = 1.0 / 60.0
         if dt > 0 && dt < 0.1 {
             scene.input = input
-            scene.processFrame(dt: scene.fixedTimestep)
+            scene.processFrame(dt: fixedTimestep)
 
             // Clear edge flags
             input.pointerJustPressed = false

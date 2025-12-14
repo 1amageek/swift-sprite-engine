@@ -152,10 +152,10 @@ public final class SNTileMap: SNNode {
             return definition
         }
 
-        // Otherwise derive from group
+        // Otherwise derive from group using position-based selection
         guard let group = tileGroups[index] else { return nil }
         let adjacency = calculateAdjacency(at: column, row: row)
-        return group.tileDefinition(for: adjacency)
+        return group.tileDefinition(for: adjacency, atColumn: column, row: row)
     }
 
     /// Sets the tile group at the specified position.

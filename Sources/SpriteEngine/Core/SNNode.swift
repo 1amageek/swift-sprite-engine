@@ -21,6 +21,17 @@
 /// scene.addChild(container)
 /// ```
 open class SNNode {
+    // MARK: - Static Action Counter (for deterministic key generation)
+
+    /// Global monotonic counter for generating deterministic action keys.
+    /// Using nonisolated(unsafe) as actions are typically managed on main thread.
+    nonisolated(unsafe) private static var actionCounter: UInt64 = 0
+
+    /// Generates the next deterministic action key.
+    private static func nextActionKey() -> String {
+        actionCounter += 1
+        return "action_\(actionCounter)"
+    }
     // MARK: - Identification
 
     /// An optional name for identifying the node.
@@ -97,7 +108,8 @@ open class SNNode {
     // MARK: - Actions
 
     /// The actions currently running on this node.
-    internal var actions: [String: SNAction] = [:]
+    /// Using an array of tuples to maintain insertion order for deterministic evaluation.
+    internal var actions: [(key: String, action: SNAction)] = []
 
     /// A speed modifier applied to all actions executed by the node and its descendants.
     ///
@@ -115,9 +127,9 @@ open class SNNode {
     ///
     /// - Parameter action: The action to run.
     public func run(_ action: SNAction) {
-        // Generate a unique key using object identifier and action count
-        let key = "action_\(ObjectIdentifier(self).hashValue)_\(actions.count)_\(Int.random(in: 0..<Int.max))"
-        actions[key] = action.copy()
+        // Generate a unique key using monotonic counter for determinism
+        let key = SNNode.nextActionKey()
+        actions.append((key: key, action: action.copy()))
     }
 
     /// Runs an action with a key for later reference.
@@ -126,7 +138,9 @@ open class SNNode {
     ///   - action: The action to run.
     ///   - key: A unique key to identify this action.
     public func run(_ action: SNAction, withKey key: String) {
-        actions[key] = action.copy()
+        // Remove existing action with same key if present
+        actions.removeAll { $0.key == key }
+        actions.append((key: key, action: action.copy()))
     }
 
     /// Runs an action with a completion handler.
@@ -169,7 +183,7 @@ open class SNNode {
     ///
     /// - Parameter key: The key of the action to remove.
     public func removeAction(forKey key: String) {
-        actions.removeValue(forKey: key)
+        actions.removeAll { $0.key == key }
     }
 
     /// Removes all actions from this node.
@@ -182,7 +196,7 @@ open class SNNode {
     /// - Parameter key: The key of the action.
     /// - Returns: The action, or `nil` if not found.
     public func action(forKey key: String) -> SNAction? {
-        actions[key]
+        actions.first { $0.key == key }?.action
     }
 
     // MARK: - Initialization
@@ -238,8 +252,12 @@ open class SNNode {
         let oldScene = self.scene
         self.scene = scene
 
-        // Notify if scene changed
+        // Handle physics body registration/removal when scene changes
         if oldScene !== scene {
+            if let body = physicsBody {
+                oldScene?.physicsWorld.removeBody(body)
+                scene?.physicsWorld.addBody(body)
+            }
             didMoveToScene(scene)
         }
 

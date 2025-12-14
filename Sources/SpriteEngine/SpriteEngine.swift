@@ -45,68 +45,63 @@
 #if arch(wasm32)
 import JavaScriptEventLoop
 #else
+import Foundation
 /// Game loop instance for native platforms (Preview).
 nonisolated(unsafe) private var _nativeGameLoop: GameLoop = GameLoop()
 #endif
 
-/// Main entry point for SpriteEngine.
+/// Main entry point for SpriteEngine (Singleton).
 ///
-/// Use `Engine.run(_:configuration:)` to start your game with a scene.
+/// Use `Engine.shared` to access the engine instance, or `Engine.run(_:)` for convenience.
 ///
 /// ## Example
 /// ```swift
 /// import SpriteEngine
 ///
-/// // Default configuration
-/// Engine.run(GameScene(size: Size(width: 800, height: 600)))
+/// // Configure and run
+/// Engine.shared.assetPath = "assets"
+/// Engine.shared.run(GameScene(size: Size(width: 800, height: 600)))
 ///
-/// // With custom asset path
-/// let config = Engine.Configuration(assetPath: "assets")
-/// Engine.run(GameScene(size: Size(width: 800, height: 600)), configuration: config)
+/// // Or use the static convenience method
+/// Engine.run(GameScene(size: Size(width: 800, height: 600)))
 /// ```
-public enum Engine {
+public final class Engine: @unchecked Sendable {
+
+    // MARK: - Singleton
+
+    /// The shared engine instance.
+    public static let shared = Engine()
+
+    /// Private initializer to enforce singleton pattern.
+    private init() {}
 
     // MARK: - Configuration
 
-    /// Configuration for the SpriteEngine.
+    /// Base path for assets.
     ///
-    /// Use this to specify asset paths and other engine settings.
+    /// This path is prepended to all asset names when loading resources.
+    /// - Empty string ("") means assets are at the root level
+    /// - "assets" means assets are in the "assets/" directory
     ///
     /// ## Asset Path Rules
     /// In browser environments, resources must be accessed via URL.
-    /// The `assetPath` specifies the base directory for all assets.
     ///
     /// ```swift
     /// // Assets at "assets/player.png"
-    /// let config = Engine.Configuration(assetPath: "assets")
+    /// Engine.shared.assetPath = "assets"
     ///
     /// // Assets at root "player.png"
-    /// let config = Engine.Configuration(assetPath: "")
+    /// Engine.shared.assetPath = ""
     /// ```
-    public struct Configuration: Sendable {
-        /// Base path for assets.
-        ///
-        /// This path is prepended to all asset names when loading resources.
-        /// - Empty string ("") means assets are at the root level
-        /// - "assets" means assets are in the "assets/" directory
-        public var assetPath: String
+    public var assetPath: String = ""
 
-        /// Creates a configuration with the specified asset path.
-        ///
-        /// - Parameter assetPath: Base directory for assets. Default is empty (root).
-        public init(assetPath: String = "") {
-            self.assetPath = assetPath
-        }
-
-        /// Default configuration with assets at root.
-        public static let `default` = Configuration()
-    }
-
-    /// Current engine configuration.
+    #if !arch(wasm32)
+    /// The bundle to load resources from.
     ///
-    /// Set by `Engine.run(_:configuration:)` and used by asset loading.
-    /// Note: WASM is single-threaded, so this is safe.
-    public nonisolated(unsafe) private(set) static var configuration: Configuration = .default
+    /// For SwiftPM packages, pass `Bundle.module` to load resources from the package.
+    /// On WASM, this property is ignored (resources are loaded via URL).
+    public var resourceBundle: Bundle = .main
+    #endif
 
     // MARK: - Run
 
@@ -116,12 +111,8 @@ public enum Engine {
     /// - On WASM: Installs JavaScript event loop and initializes WebGPU
     /// - On other platforms: Prepares for SwiftUI preview rendering
     ///
-    /// - Parameters:
-    ///   - scene: The initial scene to present.
-    ///   - configuration: Engine configuration including asset paths.
-    public static func run(_ scene: SNScene, configuration: Configuration = .default) {
-        self.configuration = configuration
-
+    /// - Parameter scene: The initial scene to present.
+    public func run(_ scene: SNScene) {
         #if arch(wasm32)
         JavaScriptEventLoop.installGlobalExecutor()
         wisp_setScene(scene)
@@ -131,4 +122,41 @@ public enum Engine {
         scene.sceneDidLoad()
         #endif
     }
+
+    #if !arch(wasm32)
+    /// Convenience static method to start the engine with a scene.
+    ///
+    /// - Parameters:
+    ///   - scene: The initial scene to present.
+    ///   - assetPath: Base directory for assets. Default is empty (root).
+    ///   - resourceBundle: Bundle to load resources from. Default is Bundle.main.
+    public static func run(_ scene: SNScene, assetPath: String = "", resourceBundle: Bundle = .main) {
+        shared.assetPath = assetPath
+        shared.resourceBundle = resourceBundle
+        shared.run(scene)
+    }
+
+    // MARK: - Reset (for testing)
+
+    /// Resets the engine configuration to defaults.
+    internal func reset() {
+        assetPath = ""
+        resourceBundle = .main
+    }
+    #else
+    /// Convenience static method to start the engine with a scene (WASM).
+    ///
+    /// - Parameters:
+    ///   - scene: The initial scene to present.
+    ///   - assetPath: Base directory for assets. Default is empty (root).
+    public static func run(_ scene: SNScene, assetPath: String = "") {
+        shared.assetPath = assetPath
+        shared.run(scene)
+    }
+
+    /// Resets the engine configuration to defaults.
+    internal func reset() {
+        assetPath = ""
+    }
+    #endif
 }

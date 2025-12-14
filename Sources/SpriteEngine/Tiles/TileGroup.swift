@@ -87,13 +87,29 @@ public final class TileGroup {
         return bestMatch ?? rules.first
     }
 
+    /// Returns a tile definition for the given adjacency and position.
+    ///
+    /// - Parameters:
+    ///   - adjacency: The adjacency mask.
+    ///   - column: The column index (for deterministic weighted selection).
+    ///   - row: The row index (for deterministic weighted selection).
+    /// - Returns: A tile definition, or `nil` for empty groups.
+    public func tileDefinition(for adjacency: TileAdjacencyMask, atColumn column: Int, row: Int) -> TileDefinition? {
+        guard !isEmpty else { return nil }
+        return rule(for: adjacency)?.selectTileDefinition(atColumn: column, row: row)
+    }
+
     /// Returns a tile definition for the given adjacency.
+    ///
+    /// - Note: This overload always returns the first definition.
+    ///         Use `tileDefinition(for:atColumn:row:)` for weighted selection.
     ///
     /// - Parameter adjacency: The adjacency mask.
     /// - Returns: A tile definition, or `nil` for empty groups.
+    @available(*, deprecated, message: "Use tileDefinition(for:atColumn:row:) for deterministic weighted selection")
     public func tileDefinition(for adjacency: TileAdjacencyMask) -> TileDefinition? {
         guard !isEmpty else { return nil }
-        return rule(for: adjacency)?.selectTileDefinition()
+        return rule(for: adjacency)?.tileDefinitions.first
     }
 
     /// The default tile definition (ignoring adjacency).

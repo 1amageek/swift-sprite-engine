@@ -299,10 +299,26 @@ public struct SpriteView: SwiftUI.View {
 
         let screenPos = scene.convertPoint(toView: command.worldPosition, viewSize: viewSize)
 
+        // Calculate scene-to-view scale factor
+        let sceneToViewScale: CGFloat
+        switch scene.scaleMode {
+        case .fill:
+            sceneToViewScale = CGFloat((viewSize.width / scene.size.width + viewSize.height / scene.size.height) / 2)
+        case .aspectFit:
+            sceneToViewScale = CGFloat(min(viewSize.width / scene.size.width, viewSize.height / scene.size.height))
+        case .aspectFill:
+            sceneToViewScale = CGFloat(max(viewSize.width / scene.size.width, viewSize.height / scene.size.height))
+        case .resizeFill:
+            sceneToViewScale = 1
+        }
+
         context.drawLayer { ctx in
             ctx.translateBy(x: CGFloat(screenPos.x), y: CGFloat(viewSize.height - screenPos.y))
             ctx.rotate(by: SwiftUI.Angle(radians: Double(-command.worldRotation)))
-            ctx.scaleBy(x: CGFloat(command.worldScale.width), y: CGFloat(command.worldScale.height))
+            ctx.scaleBy(
+                x: CGFloat(command.worldScale.width) * sceneToViewScale,
+                y: CGFloat(command.worldScale.height) * sceneToViewScale
+            )
 
             let rect = CGRect(
                 x: CGFloat(-command.size.width * command.anchorPoint.x),

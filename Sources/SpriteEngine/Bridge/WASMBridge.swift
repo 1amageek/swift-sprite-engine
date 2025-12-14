@@ -93,8 +93,8 @@ public func wisp_tick(_ deltaTime: Float) {
     // Generate draw commands
     let commands = gameLoop.generateDrawCommands()
 
-    // Debug: log command count occasionally
-    if Int.random(in: 0..<60) == 0 {
+    // Debug: log command count every 60 frames (deterministic)
+    if gameLoop.frameCount % 60 == 0 {
         consoleLog("Wisp: commands=\(commands.count), children=\(gameLoop.scene?.children.count ?? 0)")
     }
 
@@ -184,6 +184,11 @@ private func readInputFromJS() -> InputState {
 @_expose(wasm, "wisp_onTextureLoaded")
 @_cdecl("wisp_onTextureLoaded")
 public func wisp_onTextureLoaded(_ textureId: UInt32, _ width: Int32, _ height: Int32) {
+    // Update SNTexture size cache so that SNTexture.size returns correct value
+    let textureID = TextureID(rawValue: textureId)
+    let size = Size(width: Float(width), height: Float(height))
+    SNTexture.updateSizeCache(textureID: textureID, size: size)
+
     // Get the ImageBitmap from JavaScript
     let imageBitmaps = JSObject.global.loadedTextures
     if let imageBitmap = imageBitmaps[Int(textureId)].object {
