@@ -44,11 +44,11 @@
 /// ## Warp Geometry
 /// Sprites can be deformed using warp geometry:
 /// ```swift
-/// let warp = WarpGeometryGrid.wave(columns: 8, rows: 8, amplitude: 0.1, frequency: 2)
+/// let warp = SNSNWarpGeometryGrid.wave(columns: 8, rows: 8, amplitude: 0.1, frequency: 2)
 /// sprite.warpGeometry = warp
 /// sprite.subdivisionLevels = 2
 /// ```
-open class SNSpriteNode: SNNode, Warpable {
+open class SNSpriteNode: SNNode, SNWarpable {
     // MARK: - Texture
 
     /// The texture used to draw the sprite.
@@ -90,7 +90,7 @@ open class SNSpriteNode: SNNode, Warpable {
     /// ```swift
     /// sprite.blendMode = .add  // Additive blending for glow effects
     /// ```
-    public var blendMode: BlendMode = .alpha
+    public var blendMode: SNBlendMode = .alpha
 
     // MARK: - Nine-Part Scaling
 
@@ -117,17 +117,17 @@ open class SNSpriteNode: SNNode, Warpable {
 
     /// The custom shader applied to this sprite.
     /// When set, the shader's fragment function is used for rendering.
-    public var shader: Shader?
+    public var shader: SNShader?
 
     /// Per-node attribute values for the shader.
     /// Keys are attribute names from the shader's attribute definitions.
-    public var attributeValues: [String: ShaderAttributeValue] = [:]
+    public var attributeValues: [String: SNAttributeValue] = [:]
 
-    // MARK: - Warp Geometry (Warpable)
+    // MARK: - Warp Geometry (SNWarpable)
 
     /// The warp geometry applied to this sprite.
     /// When set, the sprite's mesh is deformed according to the warp.
-    public var warpGeometry: WarpGeometry?
+    public var warpGeometry: SNWarpGeometry?
 
     /// The number of subdivision levels for warp smoothing.
     /// Higher values create smoother deformations. Default: 0.
@@ -377,7 +377,7 @@ extension SNSpriteNode {
     /// - Parameters:
     ///   - value: The attribute value.
     ///   - name: The attribute name as defined in the shader.
-    public func setValue(_ value: ShaderAttributeValue, forAttribute name: String) {
+    public func setValue(_ value: SNAttributeValue, forAttribute name: String) {
         attributeValues[name] = value
     }
 
@@ -385,7 +385,7 @@ extension SNSpriteNode {
     ///
     /// - Parameter name: The attribute name.
     /// - Returns: The attribute value, or nil if not set.
-    public func value(forAttribute name: String) -> ShaderAttributeValue? {
+    public func value(forAttribute name: String) -> SNAttributeValue? {
         attributeValues[name]
     }
 

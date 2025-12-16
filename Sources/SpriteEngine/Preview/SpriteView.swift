@@ -237,33 +237,27 @@ public struct SpriteView: SwiftUI.View {
 
     // MARK: - Rendering
 
+    /// Shared canvas renderer instance.
+    private static let canvasRenderer = CanvasRenderer()
+
     private func render(context: inout GraphicsContext, size: CGSize) {
         guard let scene = controller.view.scene else { return }
 
-        let viewSize = Size(width: Float(size.width), height: Float(size.height))
-
-        // Render sprites and tile maps (including transitions)
+        // Use CanvasRenderer for all rendering
         let commands = controller.view.generateDrawCommands()
-        for command in commands {
-            renderCommand(command, context: &context, scene: scene, viewSize: viewSize)
-        }
-
-        // Render shape nodes
-        renderShapeNodes(from: scene, context: &context, scene: scene, viewSize: viewSize)
-
-        // Render labels
         let labelCommands = scene.generateLabelDrawCommands()
-        for command in labelCommands {
-            renderLabelCommand(command, context: &context, scene: scene, viewSize: viewSize)
-        }
 
-        // Render debug overlays
+        Self.canvasRenderer.render(
+            scene: scene,
+            commands: commands,
+            labelCommands: labelCommands,
+            in: &context,
+            size: size,
+            showAudioIndicator: true
+        )
+
+        // Render debug overlays (SpriteView-specific)
         renderDebugOverlays(context: &context, size: size)
-
-        // Render audio indicator
-        if scene.audio.hasCommands {
-            renderAudioIndicator(context: &context, size: size)
-        }
     }
 
     private func renderDebugOverlays(context: inout GraphicsContext, size: CGSize) {
@@ -290,171 +284,6 @@ public struct SpriteView: SwiftUI.View {
             let text = Text(drawText).font(.system(size: 12, weight: .medium)).foregroundColor(.green)
             let resolved = context.resolve(text)
             context.draw(resolved, at: CGPoint(x: 10, y: yOffset), anchor: .topLeading)
-        }
-    }
-
-    private func renderCommand(_ command: DrawCommand, context: inout GraphicsContext, scene: SNScene, viewSize: Size) {
-        guard command.alpha > 0 else { return }
-
-        let screenPos = scene.convertPoint(toView: command.worldPosition, viewSize: viewSize)
-
-        // Calculate scene-to-view scale factor
-        let sceneToViewScale: CGFloat
-        switch scene.scaleMode {
-        case .fill:
-            sceneToViewScale = CGFloat((viewSize.width / scene.size.width + viewSize.height / scene.size.height) / 2)
-        case .aspectFit:
-            sceneToViewScale = CGFloat(min(viewSize.width / scene.size.width, viewSize.height / scene.size.height))
-        case .aspectFill:
-            sceneToViewScale = CGFloat(max(viewSize.width / scene.size.width, viewSize.height / scene.size.height))
-        case .resizeFill:
-            sceneToViewScale = 1
-        }
-
-        context.drawLayer { ctx in
-            ctx.translateBy(x: CGFloat(screenPos.x), y: CGFloat(viewSize.height - screenPos.y))
-            ctx.rotate(by: SwiftUI.Angle(radians: Double(-command.worldRotation)))
-            ctx.scaleBy(
-                x: CGFloat(command.worldScale.width) * sceneToViewScale,
-                y: CGFloat(command.worldScale.height) * sceneToViewScale
-            )
-
-            let rect = CGRect(
-                x: CGFloat(-command.size.width * command.anchorPoint.x),
-                y: CGFloat(-command.size.height * (1 - command.anchorPoint.y)),
-                width: CGFloat(command.size.width),
-                height: CGFloat(command.size.height)
-            )
-
-            ctx.opacity = Double(command.alpha)
-
-            // Draw textured or solid color sprite
-            if command.textureID != .none {
-                if let cgImage = SNTexture.cachedImage(for: command.textureID) {
-                    let image = Image(cgImage, scale: 1.0, label: Text("texture"))
-                    ctx.draw(image, in: rect)
-                } else {
-                    // Texture not loaded - draw placeholder
-                    ctx.fill(SwiftUI.Path(rect), with: .color(command.color.swiftUIColor.opacity(0.8)))
-                    ctx.stroke(SwiftUI.Path(rect), with: .color(.white.opacity(0.5)), lineWidth: 1)
-                }
-            } else {
-                ctx.fill(SwiftUI.Path(rect), with: .color(command.color.swiftUIColor))
-            }
-        }
-    }
-
-    private func renderLabelCommand(_ command: LabelDrawCommand, context: inout GraphicsContext, scene: SNScene, viewSize: Size) {
-        guard command.alpha > 0 else { return }
-
-        let screenPos = scene.convertPoint(toView: command.worldPosition, viewSize: viewSize)
-
-        context.drawLayer { ctx in
-            ctx.translateBy(x: CGFloat(screenPos.x), y: CGFloat(viewSize.height - screenPos.y))
-            ctx.rotate(by: SwiftUI.Angle(radians: Double(-command.worldRotation)))
-            ctx.scaleBy(x: CGFloat(command.worldScale.width), y: CGFloat(command.worldScale.height))
-
-            ctx.opacity = Double(command.alpha)
-
-            var text = Text(command.text)
-                .font(.system(size: CGFloat(command.fontSize)))
-                .foregroundColor(command.fontColor.swiftUIColor)
-
-            if let fontName = command.fontName {
-                text = Text(command.text)
-                    .font(.custom(fontName, size: CGFloat(command.fontSize)))
-                    .foregroundColor(command.fontColor.swiftUIColor)
-            }
-
-            let resolved = ctx.resolve(text)
-            let textSize = resolved.measure(in: CGSize(width: CGFloat.infinity, height: CGFloat.infinity))
-
-            var offsetX: CGFloat = 0
-            var offsetY: CGFloat = 0
-
-            switch command.horizontalAlignment {
-            case .left: offsetX = 0
-            case .center: offsetX = -textSize.width / 2
-            case .right: offsetX = -textSize.width
-            }
-
-            switch command.verticalAlignment {
-            case .top: offsetY = 0
-            case .center: offsetY = -textSize.height / 2
-            case .bottom: offsetY = -textSize.height
-            }
-
-            ctx.draw(resolved, at: CGPoint(x: offsetX + textSize.width / 2, y: offsetY + textSize.height / 2))
-        }
-    }
-
-    private func renderShapeNodes(from node: SNNode, context: inout GraphicsContext, scene: SNScene, viewSize: Size) {
-        guard !node.isHidden else { return }
-
-        if let shapeNode = node as? SNShapeNode, shapeNode.alpha > 0, let path = shapeNode.path {
-            renderShapeNode(shapeNode, path: path, context: &context, scene: scene, viewSize: viewSize)
-        }
-
-        for child in node.children {
-            renderShapeNodes(from: child, context: &context, scene: scene, viewSize: viewSize)
-        }
-    }
-
-    private func renderShapeNode(_ node: SNShapeNode, path: ShapePath, context: inout GraphicsContext, scene: SNScene, viewSize: Size) {
-        let screenPos = scene.convertPoint(toView: node.worldPosition, viewSize: viewSize)
-
-        context.drawLayer { ctx in
-            ctx.translateBy(x: CGFloat(screenPos.x), y: CGFloat(viewSize.height - screenPos.y))
-            ctx.rotate(by: SwiftUI.Angle(radians: Double(-node.worldRotation)))
-            ctx.scaleBy(x: CGFloat(node.worldScale.width), y: CGFloat(node.worldScale.height))
-
-            ctx.opacity = Double(node.alpha)
-
-            let swiftPath = path.toSwiftUIPath()
-
-            if let fillColor = node.fillColor, fillColor.alpha > 0 {
-                ctx.fill(swiftPath, with: .color(fillColor.swiftUIColor))
-            }
-
-            if let strokeColor = node.strokeColor, strokeColor.alpha > 0, node.lineWidth > 0 {
-                let style = StrokeStyle(
-                    lineWidth: CGFloat(node.lineWidth),
-                    lineCap: node.lineCap.cgLineCap,
-                    lineJoin: node.lineJoin.cgLineJoin,
-                    miterLimit: CGFloat(node.miterLimit)
-                )
-                ctx.stroke(swiftPath, with: .color(strokeColor.swiftUIColor), style: style)
-            }
-        }
-    }
-
-    private func renderAudioIndicator(context: inout GraphicsContext, size: CGSize) {
-        let iconSize: CGFloat = 20
-        let padding: CGFloat = 10
-        let rect = CGRect(x: size.width - iconSize - padding, y: padding, width: iconSize, height: iconSize)
-
-        context.drawLayer { ctx in
-            ctx.opacity = 0.7
-
-            var speakerPath = SwiftUI.Path()
-            speakerPath.move(to: CGPoint(x: rect.minX + 4, y: rect.midY - 4))
-            speakerPath.addLine(to: CGPoint(x: rect.minX + 8, y: rect.midY - 4))
-            speakerPath.addLine(to: CGPoint(x: rect.minX + 14, y: rect.midY - 8))
-            speakerPath.addLine(to: CGPoint(x: rect.minX + 14, y: rect.midY + 8))
-            speakerPath.addLine(to: CGPoint(x: rect.minX + 8, y: rect.midY + 4))
-            speakerPath.addLine(to: CGPoint(x: rect.minX + 4, y: rect.midY + 4))
-            speakerPath.closeSubpath()
-            ctx.fill(speakerPath, with: .color(.white))
-
-            var wave1 = SwiftUI.Path()
-            wave1.addArc(center: CGPoint(x: rect.minX + 14, y: rect.midY), radius: 4,
-                         startAngle: SwiftUI.Angle(degrees: -45), endAngle: SwiftUI.Angle(degrees: 45), clockwise: false)
-            ctx.stroke(wave1, with: .color(.white), lineWidth: 1.5)
-
-            var wave2 = SwiftUI.Path()
-            wave2.addArc(center: CGPoint(x: rect.minX + 14, y: rect.midY), radius: 7,
-                         startAngle: SwiftUI.Angle(degrees: -45), endAngle: SwiftUI.Angle(degrees: 45), clockwise: false)
-            ctx.stroke(wave2, with: .color(.white), lineWidth: 1.5)
         }
     }
 }

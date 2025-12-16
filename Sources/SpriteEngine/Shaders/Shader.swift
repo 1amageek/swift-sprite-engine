@@ -1,6 +1,6 @@
 /// A custom shader program for rendering nodes.
 ///
-/// `Shader` allows you to apply custom visual effects to sprites and other nodes
+/// `SNShader` allows you to apply custom visual effects to sprites and other nodes
 /// using WGSL (WebGPU Shading Language) shader code. Shaders can have uniforms
 /// (shared data) and attributes (per-node data).
 ///
@@ -15,8 +15,8 @@
 /// }
 /// """
 ///
-/// let shader = Shader(source: shaderSource)
-/// shader.addUniform(Uniform(name: "u_tint", float4: (1.0, 0.5, 0.0, 1.0)))
+/// let shader = SNShader(source: shaderSource)
+/// shader.addUniform(SNUniform(name: "u_tint", float4: (1.0, 0.5, 0.0, 1.0)))
 ///
 /// sprite.shader = shader
 /// ```
@@ -24,7 +24,7 @@
 /// ## Uniforms vs Attributes
 /// - **Uniforms**: Shared across all nodes using this shader. Changed per-frame or per-draw-call.
 /// - **Attributes**: Per-node data. Each node can have different values.
-public final class Shader {
+public final class SNShader {
     /// An optional name for identifying this shader.
     public var name: String?
 
@@ -32,10 +32,10 @@ public final class Shader {
     public let source: String
 
     /// The uniforms used by this shader.
-    public private(set) var uniforms: [Uniform]
+    public private(set) var uniforms: [SNUniform]
 
     /// The attributes defined by this shader.
-    public private(set) var attributes: [ShaderAttribute]
+    public private(set) var attributes: [SNAttribute]
 
     // MARK: - Initialization
 
@@ -54,7 +54,7 @@ public final class Shader {
     /// - Parameters:
     ///   - source: The WGSL shader source code.
     ///   - uniforms: The uniforms to include.
-    public init(source: String, uniforms: [Uniform]) {
+    public init(source: String, uniforms: [SNUniform]) {
         self.name = nil
         self.source = source
         self.uniforms = uniforms
@@ -67,7 +67,7 @@ public final class Shader {
     ///   - source: The WGSL shader source code.
     ///   - uniforms: The uniforms to include.
     ///   - attributes: The per-node attributes to include.
-    public init(source: String, uniforms: [Uniform], attributes: [ShaderAttribute]) {
+    public init(source: String, uniforms: [SNUniform], attributes: [SNAttribute]) {
         self.name = nil
         self.source = source
         self.uniforms = uniforms
@@ -79,7 +79,7 @@ public final class Shader {
     /// Adds a uniform to the shader.
     ///
     /// - Parameter uniform: The uniform to add.
-    public func addUniform(_ uniform: Uniform) {
+    public func addUniform(_ uniform: SNUniform) {
         // Replace existing uniform with same name
         if let index = uniforms.firstIndex(where: { $0.name == uniform.name }) {
             uniforms[index] = uniform
@@ -99,7 +99,7 @@ public final class Shader {
     ///
     /// - Parameter name: The uniform name.
     /// - Returns: The uniform, or `nil` if not found.
-    public func uniform(named name: String) -> Uniform? {
+    public func uniform(named name: String) -> SNUniform? {
         uniforms.first { $0.name == name }
     }
 
@@ -108,7 +108,7 @@ public final class Shader {
     /// Adds an attribute to the shader.
     ///
     /// - Parameter attribute: The attribute to add.
-    public func addAttribute(_ attribute: ShaderAttribute) {
+    public func addAttribute(_ attribute: SNAttribute) {
         // Replace existing attribute with same name
         if let index = attributes.firstIndex(where: { $0.name == attribute.name }) {
             attributes[index] = attribute
@@ -128,18 +128,18 @@ public final class Shader {
     ///
     /// - Parameter name: The attribute name.
     /// - Returns: The attribute, or `nil` if not found.
-    public func attribute(named name: String) -> ShaderAttribute? {
+    public func attribute(named name: String) -> SNAttribute? {
         attributes.first { $0.name == name }
     }
 }
 
 // MARK: - Built-in Shaders
 
-extension Shader {
+extension SNShader {
     /// Creates a grayscale shader.
     ///
     /// - Returns: A shader that converts colors to grayscale.
-    public static func grayscale() -> Shader {
+    public static func grayscale() -> SNShader {
         let source = """
         // Grayscale shader
         // Converts the texture to grayscale using luminance weights
@@ -153,7 +153,7 @@ extension Shader {
             return vec4<f32>(gray, gray, gray, texColor.a) * color;
         }
         """
-        let shader = Shader(source: source)
+        let shader = SNShader(source: source)
         shader.name = "grayscale"
         return shader
     }
@@ -161,7 +161,7 @@ extension Shader {
     /// Creates a sepia tone shader.
     ///
     /// - Returns: A shader that applies a sepia tone effect.
-    public static func sepia() -> Shader {
+    public static func sepia() -> SNShader {
         let source = """
         // Sepia shader
         // Applies a warm sepia tone to the texture
@@ -178,7 +178,7 @@ extension Shader {
             return vec4<f32>(sepia, texColor.a) * color;
         }
         """
-        let shader = Shader(source: source)
+        let shader = SNShader(source: source)
         shader.name = "sepia"
         return shader
     }
@@ -186,7 +186,7 @@ extension Shader {
     /// Creates an invert colors shader.
     ///
     /// - Returns: A shader that inverts colors.
-    public static func invert() -> Shader {
+    public static func invert() -> SNShader {
         let source = """
         // Invert shader
         // Inverts the RGB colors while preserving alpha
@@ -199,7 +199,7 @@ extension Shader {
             return vec4<f32>(1.0 - texColor.r, 1.0 - texColor.g, 1.0 - texColor.b, texColor.a) * color;
         }
         """
-        let shader = Shader(source: source)
+        let shader = SNShader(source: source)
         shader.name = "invert"
         return shader
     }
@@ -208,7 +208,7 @@ extension Shader {
     ///
     /// - Parameter pixelSize: The size of pixels (higher = more pixelated).
     /// - Returns: A shader that pixelates the texture.
-    public static func pixelate(pixelSize: Float = 8.0) -> Shader {
+    public static func pixelate(pixelSize: Float = 8.0) -> SNShader {
         let source = """
         // Pixelate shader
         // Reduces texture resolution for a retro effect
@@ -225,10 +225,10 @@ extension Shader {
             return texColor * color;
         }
         """
-        let shader = Shader(source: source)
+        let shader = SNShader(source: source)
         shader.name = "pixelate"
-        shader.addUniform(Uniform(name: "u_pixelSize", float: pixelSize))
-        shader.addUniform(Uniform(name: "u_textureSize", floatVector2: (256.0, 256.0)))
+        shader.addUniform(SNUniform(name: "u_pixelSize", float: pixelSize))
+        shader.addUniform(SNUniform(name: "u_textureSize", floatVector2: (256.0, 256.0)))
         return shader
     }
 
@@ -236,7 +236,7 @@ extension Shader {
     ///
     /// - Parameter radius: The blur radius.
     /// - Returns: A shader that applies a box blur.
-    public static func blur(radius: Float = 2.0) -> Shader {
+    public static func blur(radius: Float = 2.0) -> SNShader {
         let source = """
         // Box blur shader
         // Applies a simple box blur effect
@@ -263,10 +263,10 @@ extension Shader {
             return (result / samples) * color;
         }
         """
-        let shader = Shader(source: source)
+        let shader = SNShader(source: source)
         shader.name = "blur"
-        shader.addUniform(Uniform(name: "u_radius", float: radius))
-        shader.addUniform(Uniform(name: "u_textureSize", floatVector2: (256.0, 256.0)))
+        shader.addUniform(SNUniform(name: "u_radius", float: radius))
+        shader.addUniform(SNUniform(name: "u_textureSize", floatVector2: (256.0, 256.0)))
         return shader
     }
 
@@ -274,7 +274,7 @@ extension Shader {
     ///
     /// - Parameter amount: The amount of color separation.
     /// - Returns: A shader that applies chromatic aberration.
-    public static func chromaticAberration(amount: Float = 0.01) -> Shader {
+    public static func chromaticAberration(amount: Float = 0.01) -> SNShader {
         let source = """
         // Chromatic aberration shader
         // Separates RGB channels for a glitch effect
@@ -292,9 +292,9 @@ extension Shader {
             return vec4<f32>(r, g, b, a) * color;
         }
         """
-        let shader = Shader(source: source)
+        let shader = SNShader(source: source)
         shader.name = "chromaticAberration"
-        shader.addUniform(Uniform(name: "u_amount", float: amount))
+        shader.addUniform(SNUniform(name: "u_amount", float: amount))
         return shader
     }
 }

@@ -1,23 +1,23 @@
 /// A protocol for nodes that support warp geometry deformation.
 ///
-/// Types conforming to `Warpable` can have their geometry deformed
-/// using `WarpGeometry` objects. This enables effects like bending,
+/// Types conforming to `SNWarpable` can have their geometry deformed
+/// using `SNWarpGeometry` objects. This enables effects like bending,
 /// twisting, and wave animations on sprites and other nodes.
 ///
 /// ## Usage
 /// ```swift
 /// // Apply a warp to a sprite
-/// let warp = WarpGeometryGrid.wave(columns: 8, rows: 8, amplitude: 0.1, frequency: 2)
+/// let warp = SNSNWarpGeometryGrid.wave(columns: 8, rows: 8, amplitude: 0.1, frequency: 2)
 /// sprite.warpGeometry = warp
 /// sprite.subdivisionLevels = 2
 /// ```
-public protocol Warpable: AnyObject {
+public protocol SNWarpable: AnyObject {
     /// The warp geometry applied to this node.
     ///
     /// When set, the node's geometry is deformed according to the
     /// warp geometry's source and destination positions. Set to `nil`
     /// to remove the warp effect.
-    var warpGeometry: WarpGeometry? { get set }
+    var warpGeometry: SNWarpGeometry? { get set }
 
     /// The number of subdivision levels for warp smoothing.
     ///

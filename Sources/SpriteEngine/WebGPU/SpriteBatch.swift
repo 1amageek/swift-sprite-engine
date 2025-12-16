@@ -9,7 +9,7 @@ struct SpriteBatch {
     let textureID: UInt32
 
     /// The blend mode for this batch.
-    let blendMode: BlendMode
+    let blendMode: SNBlendMode
 
     /// Instance data for all sprites in this batch.
     var instances: [SpriteInstance] = []

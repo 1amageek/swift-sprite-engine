@@ -1,20 +1,20 @@
 /// A container for uniform data passed to shaders.
 ///
-/// `Uniform` holds named data that can be passed to shader programs.
+/// `SNUniform` holds named data that can be passed to shader programs.
 /// The data is shared across all instances using the shader.
 ///
 /// ## Usage
 /// ```swift
 /// // Create a time uniform
-/// let timeUniform = Uniform(name: "u_time", float: 0.0)
+/// let timeUniform = SNUniform(name: "u_time", float: 0.0)
 ///
 /// // Create a color uniform
-/// let colorUniform = Uniform(name: "u_tint", floatVector4: (1.0, 0.5, 0.0, 1.0))
+/// let colorUniform = SNUniform(name: "u_tint", floatVector4: (1.0, 0.5, 0.0, 1.0))
 ///
 /// // Update the uniform value
 /// timeUniform.floatValue = elapsedTime
 /// ```
-public final class Uniform {
+public final class SNUniform {
     /// The name of the uniform as it appears in the shader.
     public let name: String
 

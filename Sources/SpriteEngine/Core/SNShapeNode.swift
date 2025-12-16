@@ -80,7 +80,7 @@ public final class SNShapeNode: SNNode {
     // MARK: - Blending
 
     /// The blend mode used when rendering the shape.
-    public var blendMode: BlendMode = .alpha
+    public var blendMode: SNBlendMode = .alpha
 
     // MARK: - Cached Bounds
 

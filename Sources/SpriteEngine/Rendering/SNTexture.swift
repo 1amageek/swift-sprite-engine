@@ -86,9 +86,10 @@ public final class SNTexture: @unchecked Sendable {
         let result = loadTexture(fullPath)
         self.textureID = TextureID(rawValue: UInt32(result.number ?? 0))
         #else
-        // Native: Assign ID and load lazily
-        self.textureID = TextureID(rawValue: SNTexture.nextNativeID)
-        SNTexture.nextNativeID += 1
+        // Native: Assign ID and load immediately
+        self.textureID = TextureID(rawValue: SNTexture.getAndIncrementNativeID())
+        // Load the image immediately so it's available in the cache for PreviewRenderer
+        loadFromBundleIfNeeded()
         #endif
     }
 
@@ -116,8 +117,7 @@ public final class SNTexture: @unchecked Sendable {
         }
         #else
         // Native: Generate new texture ID for cropped CGImage
-        let newID = TextureID(rawValue: SNTexture.nextNativeID)
-        SNTexture.nextNativeID += 1
+        let newID = TextureID(rawValue: SNTexture.getAndIncrementNativeID())
 
         self.init(name: "\(texture.name)#\(rect.x),\(rect.y)", textureID: newID)
         self._textureRect = rect
@@ -142,8 +142,8 @@ public final class SNTexture: @unchecked Sendable {
             if let cropped = sourceCGImage.cropping(to: cropRect) {
                 self._cgImage = cropped
                 self._size = Size(width: Float(cropped.width), height: Float(cropped.height))
-                // Register in cache for PreviewRenderer
-                SNTexture.imageCache[newID] = cropped
+                // Register in cache for PreviewRenderer (thread-safe)
+                SNTexture.setCachedImage(cropped, for: newID)
             }
         }
         #endif
@@ -159,13 +159,12 @@ public final class SNTexture: @unchecked Sendable {
     #if canImport(CoreGraphics) && !arch(wasm32)
     /// Creates a texture from a CGImage.
     public convenience init(cgImage: CGImage) {
-        let id = TextureID(rawValue: SNTexture.nextNativeID)
-        SNTexture.nextNativeID += 1
+        let id = TextureID(rawValue: SNTexture.getAndIncrementNativeID())
         self.init(name: "cgimage-\(id.rawValue)", textureID: id)
         self._cgImage = cgImage
         self._size = Size(width: Float(cgImage.width), height: Float(cgImage.height))
-        // Store in cache for Preview rendering lookup
-        SNTexture.imageCache[id] = cgImage
+        // Store in cache for Preview rendering lookup (thread-safe)
+        SNTexture.setCachedImage(cgImage, for: id)
     }
     #endif
 
@@ -339,15 +338,39 @@ public final class SNTexture: @unchecked Sendable {
     // MARK: - Native Loading
 
     #if !arch(wasm32)
+    /// Lock for thread-safe access to static caches.
+    /// Prevents race conditions when textures are created/destroyed during rendering.
+    private static let cacheLock = NSLock()
+
     /// Counter for native texture IDs.
-    private nonisolated(unsafe) static var nextNativeID: UInt32 = 1
+    /// Protected by cacheLock - use getAndIncrementNativeID() for access.
+    private nonisolated(unsafe) static var _nextNativeID: UInt32 = 1
+
+    /// Atomically gets and increments the next native ID.
+    private static func getAndIncrementNativeID() -> UInt32 {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        let id = _nextNativeID
+        _nextNativeID += 1
+        return id
+    }
 
     /// Cache for looking up CGImage by textureID (for Preview rendering).
-    private nonisolated(unsafe) static var imageCache: [TextureID: CGImage] = [:]
+    /// Protected by cacheLock - use setCachedImage() and cachedImage(for:) for access.
+    private nonisolated(unsafe) static var _imageCache: [TextureID: CGImage] = [:]
 
-    /// Returns cached CGImage for a texture ID.
+    /// Thread-safe setter for image cache.
+    private static func setCachedImage(_ image: CGImage, for id: TextureID) {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        _imageCache[id] = image
+    }
+
+    /// Returns cached CGImage for a texture ID (thread-safe).
     internal static func cachedImage(for id: TextureID) -> CGImage? {
-        return imageCache[id]
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        return _imageCache[id]
     }
 
     #if canImport(ImageIO) && canImport(Foundation)
@@ -364,8 +387,8 @@ public final class SNTexture: @unchecked Sendable {
         _cgImage = image
         _size = Size(width: Float(image.width), height: Float(image.height))
 
-        // Store in cache for Preview rendering lookup
-        SNTexture.imageCache[textureID] = image
+        // Store in cache for Preview rendering lookup (thread-safe)
+        SNTexture.setCachedImage(image, for: textureID)
     }
 
     /// Finds the image URL in the bundle.

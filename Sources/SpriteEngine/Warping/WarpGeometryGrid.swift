@@ -1,13 +1,13 @@
 /// A grid-based warp geometry for mesh deformation.
 ///
-/// `WarpGeometryGrid` divides a sprite into a grid of vertices that can
+/// `SNSNWarpGeometryGrid` divides a sprite into a grid of vertices that can
 /// be individually displaced to create deformation effects like bending,
 /// twisting, or wave animations.
 ///
 /// ## Usage
 /// ```swift
 /// // Create a 4x4 grid (25 vertices)
-/// var warp = WarpGeometryGrid(columns: 4, rows: 4)
+/// var warp = SNSNWarpGeometryGrid(columns: 4, rows: 4)
 ///
 /// // Deform the top-right corner
 /// warp.setDestinationPosition(Point(x: 1.1, y: 1.1), at: 24)
@@ -26,7 +26,7 @@
 /// Row 1: [ 5][ 6][ 7][ 8][ 9]
 /// Row 0: [ 0][ 1][ 2][ 3][ 4]
 /// ```
-public final class WarpGeometryGrid: WarpGeometry {
+public final class SNSNWarpGeometryGrid: SNWarpGeometry {
     /// The number of columns in the grid.
     public let columns: Int
 
@@ -103,7 +103,7 @@ public final class WarpGeometryGrid: WarpGeometry {
         if sourcePositions.count == expectedCount {
             self.sourcePositions = sourcePositions
         } else {
-            self.sourcePositions = WarpGeometryGrid.createDefaultPositions(
+            self.sourcePositions = SNSNWarpGeometryGrid.createDefaultPositions(
                 columns: self.columns,
                 rows: self.rows
             )
@@ -237,10 +237,10 @@ public final class WarpGeometryGrid: WarpGeometry {
     ///   - progress: The interpolation factor (0 = from, 1 = to).
     /// - Returns: A new interpolated warp geometry, or nil if geometries are incompatible.
     public static func interpolate(
-        from: WarpGeometryGrid,
-        to: WarpGeometryGrid,
+        from: SNSNWarpGeometryGrid,
+        to: SNSNWarpGeometryGrid,
         progress: Float
-    ) -> WarpGeometryGrid? {
+    ) -> SNSNWarpGeometryGrid? {
         guard from.columns == to.columns && from.rows == to.rows else {
             return nil
         }
@@ -259,7 +259,7 @@ public final class WarpGeometryGrid: WarpGeometry {
             newDestinations.append(interpolated)
         }
 
-        return WarpGeometryGrid(
+        return SNSNWarpGeometryGrid(
             columns: from.columns,
             rows: from.rows,
             sourcePositions: from.sourcePositions,
@@ -272,8 +272,8 @@ public final class WarpGeometryGrid: WarpGeometry {
     /// Creates a copy of this warp geometry grid.
     ///
     /// - Returns: A new warp geometry grid with the same configuration.
-    public override func copy() -> WarpGeometry {
-        WarpGeometryGrid(
+    public override func copy() -> SNWarpGeometry {
+        SNSNWarpGeometryGrid(
             columns: columns,
             rows: rows,
             sourcePositions: sourcePositions,
@@ -303,7 +303,7 @@ public final class WarpGeometryGrid: WarpGeometry {
 
 // MARK: - Preset Warps
 
-extension WarpGeometryGrid {
+extension SNSNWarpGeometryGrid {
     /// Creates a wave deformation effect.
     ///
     /// - Parameters:
@@ -321,8 +321,8 @@ extension WarpGeometryGrid {
         frequency: Float,
         phase: Float = 0,
         horizontal: Bool = true
-    ) -> WarpGeometryGrid {
-        let grid = WarpGeometryGrid(columns: columns, rows: rows)
+    ) -> SNSNWarpGeometryGrid {
+        let grid = SNSNWarpGeometryGrid(columns: columns, rows: rows)
 
         for row in 0...(rows) {
             for col in 0...(columns) {
@@ -364,8 +364,8 @@ extension WarpGeometryGrid {
         center: Point = Point(x: 0.5, y: 0.5),
         radius: Float = 0.5,
         strength: Float = 0.3
-    ) -> WarpGeometryGrid {
-        let grid = WarpGeometryGrid(columns: columns, rows: rows)
+    ) -> SNSNWarpGeometryGrid {
+        let grid = SNSNWarpGeometryGrid(columns: columns, rows: rows)
 
         for row in 0...(rows) {
             for col in 0...(columns) {
@@ -406,8 +406,8 @@ extension WarpGeometryGrid {
         center: Point = Point(x: 0.5, y: 0.5),
         radius: Float = 0.5,
         angle: Float = Float.pi / 4
-    ) -> WarpGeometryGrid {
-        let grid = WarpGeometryGrid(columns: columns, rows: rows)
+    ) -> SNSNWarpGeometryGrid {
+        let grid = SNSNWarpGeometryGrid(columns: columns, rows: rows)
 
         for row in 0...(rows) {
             for col in 0...(columns) {

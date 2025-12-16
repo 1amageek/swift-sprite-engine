@@ -19,6 +19,24 @@
 /// fire.particleAlphaSpeed = -0.5
 /// scene.addChild(fire)
 /// ```
+///
+/// ## Animating Particles
+/// You can animate particles in two ways:
+///
+/// ### Using Keyframe Sequences
+/// ```swift
+/// let scaleSequence = SNKeyframeSequence(
+///     floatValues: [0.2, 0.7, 0.1],
+///     times: [0.0, 0.25, 0.75]
+/// )
+/// emitter.particleScaleSequence = scaleSequence
+/// ```
+///
+/// ### Using Particle Actions
+/// ```swift
+/// let textures = (0..<8).map { SNTexture(imageNamed: "explosion_\($0)") }
+/// emitter.particleAction = SNAction.animate(with: textures, timePerFrame: 0.05)
+/// ```
 public final class SNEmitterNode: SNNode {
     // MARK: - Particle Birth Rate
 
@@ -50,6 +68,9 @@ public final class SNEmitterNode: SNNode {
 
     /// The range of random values for particle z-position.
     public var particleZPositionRange: Float = 0
+
+    /// The speed at which the particle's depth changes per second.
+    public var particleZPositionSpeed: Float = 0
 
     // MARK: - Particle Velocity
 
@@ -93,6 +114,12 @@ public final class SNEmitterNode: SNNode {
     /// The rate at which particle scale changes per second.
     public var particleScaleSpeed: Float = 0
 
+    /// The sequence used to specify the scale factor of a particle over its lifetime.
+    ///
+    /// When set, this sequence replaces the normal scale simulation (particleScale,
+    /// particleScaleRange, particleScaleSpeed) with keyframe-based animation.
+    public var particleScaleSequence: SNKeyframeSequence?
+
     // MARK: - Particle Texture and Size
 
     /// The texture used to render particles.
@@ -130,6 +157,11 @@ public final class SNEmitterNode: SNNode {
     /// The rate at which the alpha component changes per second.
     public var particleColorAlphaSpeed: Float = 0
 
+    /// The sequence used to specify the color components of a particle over its lifetime.
+    ///
+    /// When set, this sequence replaces the normal color simulation with keyframe-based animation.
+    public var particleColorSequence: SNKeyframeSequence?
+
     // MARK: - Color Blending
 
     /// The amount of color blending with the texture.
@@ -140,6 +172,9 @@ public final class SNEmitterNode: SNNode {
 
     /// The rate at which color blend factor changes per second.
     public var particleColorBlendFactorSpeed: Float = 0
+
+    /// The sequence used to specify the color blend factor of a particle over its lifetime.
+    public var particleColorBlendFactorSequence: SNKeyframeSequence?
 
     // MARK: - Alpha
 
@@ -152,15 +187,20 @@ public final class SNEmitterNode: SNNode {
     /// The rate at which particle alpha changes per second.
     public var particleAlphaSpeed: Float = 0
 
+    /// The sequence used to specify the alpha value of a particle over its lifetime.
+    ///
+    /// When set, this sequence replaces the normal alpha simulation with keyframe-based animation.
+    public var particleAlphaSequence: SNKeyframeSequence?
+
     // MARK: - Blending
 
     /// The blend mode used when rendering particles.
-    public var particleBlendMode: BlendMode = .alpha
+    public var particleBlendMode: SNBlendMode = .alpha
 
     // MARK: - Render Order
 
     /// The order in which particles are rendered.
-    public var particleRenderOrder: ParticleRenderOrder = .oldestFirst
+    public var particleRenderOrder: SNParticleRenderOrder = .oldestFirst
 
     // MARK: - Target Node
 
@@ -176,17 +216,43 @@ public final class SNEmitterNode: SNNode {
     // MARK: - Shader
 
     /// A custom shader for rendering particles.
-    public var shader: Shader?
+    public var shader: SNShader?
 
     /// Per-node attribute values for the shader.
-    public var attributeValues: [String: ShaderAttributeValue] = [:]
+    public var attributeValues: [String: SNAttributeValue] = [:]
+
+    // MARK: - Particle Action
+
+    /// An action executed by new particles.
+    ///
+    /// Although you do not have direct access to the particles created by SpriteEngine,
+    /// you can specify an action that all particles execute. Whenever a new particle is
+    /// created, the emitter tells the particle to run that action.
+    ///
+    /// You can use actions to create sophisticated behaviors, such as animating the
+    /// particle's textures:
+    ///
+    /// ```swift
+    /// let textures = (0..<8).map { SNTexture(imageNamed: "explosion_\($0)") }
+    /// emitter.particleAction = SNAction.animate(with: textures, timePerFrame: 0.05)
+    /// ```
+    public var particleAction: SNAction?
 
     // MARK: - Internal State
+
+    /// Whether the emitter's particle simulation is paused.
+    ///
+    /// When paused, no new particles are emitted and existing particles are not updated.
+    /// Use `advanceSimulationTime(_:)` to manually advance the simulation while paused.
+    public var isPaused: Bool = false
 
     private var particles: [Particle] = []
     private var totalParticlesEmitted: Int = 0
     private var timeSinceLastEmission: Float = 0
     private var isEmitting: Bool = true
+
+    /// Reusable proxy node for action evaluation (avoids per-frame allocation)
+    private lazy var actionProxyNode: ParticleProxyNode = ParticleProxyNode()
 
     // MARK: - Initialization
 
@@ -198,12 +264,26 @@ public final class SNEmitterNode: SNNode {
 
     /// Advances the particle simulation by the specified time.
     ///
+    /// Use this method to prepopulate an emitter with particles when it is first
+    /// added to a scene. This is useful for effects like smoke or snow that should
+    /// already be visible when they appear.
+    ///
     /// - Parameter time: The time interval to advance.
     public func advanceSimulationTime(_ time: Float) {
+        // If paused, temporarily unpause
+        let wasPaused = isPaused
+        if wasPaused {
+            isPaused = false
+        }
+
         let steps = Int(time / (1.0 / 60.0))
         let dt: Float = 1.0 / 60.0
         for _ in 0..<steps {
             updateParticles(deltaTime: dt)
+        }
+
+        if wasPaused {
+            isPaused = true
         }
     }
 
@@ -221,6 +301,9 @@ public final class SNEmitterNode: SNNode {
     ///
     /// - Parameter deltaTime: The time since the last update.
     public func updateParticles(deltaTime: Float) {
+        // Don't update if paused
+        if isPaused { return }
+
         // Emit new particles
         if isEmitting && particleBirthRate > 0 {
             timeSinceLastEmission += deltaTime
@@ -249,32 +332,104 @@ public final class SNEmitterNode: SNNode {
                 continue
             }
 
-            // Update position
+            // Calculate normalized lifetime progress (0.0 to 1.0)
+            let progress = particle.age / particle.lifetime
+
+            // ============================================
+            // STEP 1: Evaluate particle action
+            // ============================================
+            // Per SpriteKit docs: "you can treat the particle as if it were a normal node"
+            // Actions can modify any property. Sequences will override later if set.
+            if let action = particle.action, !particle.actionComplete {
+                // Set up the proxy node with current particle state
+                actionProxyNode.texture = particle.texture
+                actionProxyNode.position = particle.position
+                actionProxyNode.rotation = particle.rotation
+                actionProxyNode.scale = Size(width: particle.scale, height: particle.scale)
+                actionProxyNode.alpha = particle.alpha
+                actionProxyNode.color = particle.color
+                actionProxyNode.colorBlendFactor = particle.colorBlendFactor
+                actionProxyNode.size = particle.size ?? particleSize
+
+                // Evaluate the action
+                let completed = action.evaluate(on: actionProxyNode, dt: deltaTime)
+
+                // Copy back ALL action-modified properties
+                // Keyframe sequences will override specific properties in STEP 3
+                particle.texture = actionProxyNode.texture
+                particle.size = actionProxyNode.size
+                particle.scale = actionProxyNode.scale.width
+                particle.alpha = actionProxyNode.alpha
+                particle.color = actionProxyNode.color
+                particle.colorBlendFactor = actionProxyNode.colorBlendFactor
+                particle.rotation = actionProxyNode.rotation
+                // Note: position is NOT copied - velocity-based movement handles position
+
+                if completed {
+                    particle.actionComplete = true
+                }
+            }
+
+            // ============================================
+            // STEP 2: Apply physics simulation
+            // ============================================
+            // Velocity-based movement (always additive, independent of actions)
             particle.velocity.x += xAcceleration * deltaTime
             particle.velocity.y += yAcceleration * deltaTime
             particle.position.x += particle.velocity.x * deltaTime
             particle.position.y += particle.velocity.y * deltaTime
 
-            // Update rotation
-            particle.rotation += particle.rotationSpeed * deltaTime
+            // Z position speed (always applied)
+            particle.zPosition += particleZPositionSpeed * deltaTime
 
-            // Update scale
-            particle.scale += particleScaleSpeed * deltaTime
+            // Rotation speed (only when action is not controlling rotation)
+            // If action is running and modifying rotation, don't apply rotationSpeed
+            if particle.actionComplete {
+                particle.rotation += particle.rotationSpeed * deltaTime
+            }
 
-            // Update color
-            particle.color = Color(
-                red: particle.color.red + particleColorRedSpeed * deltaTime,
-                green: particle.color.green + particleColorGreenSpeed * deltaTime,
-                blue: particle.color.blue + particleColorBlueSpeed * deltaTime,
-                alpha: particle.color.alpha + particleColorAlphaSpeed * deltaTime
-            )
+            // ============================================
+            // STEP 3: Apply keyframe sequences (override)
+            // ============================================
+            // Per SpriteKit docs: "The sequence REPLACES the normal simulation"
+            // Sequences have highest priority and override both actions and speed-based changes.
 
-            // Update alpha
-            particle.alpha += particleAlphaSpeed * deltaTime
+            // Scale: Sequence > Action > Speed-based
+            if let scaleSequence = particleScaleSequence {
+                particle.scale = scaleSequence.sampleFloat(atTime: progress)
+            } else if particle.actionComplete && particleScaleSpeed != 0 {
+                // Speed-based only applies when action is complete (action controls while running)
+                particle.scale += particleScaleSpeed * deltaTime
+            }
+
+            // Color: Sequence > Action > Speed-based
+            if let colorSequence = particleColorSequence {
+                particle.color = colorSequence.sampleColor(atTime: progress)
+            } else if particle.actionComplete &&
+                      (particleColorRedSpeed != 0 || particleColorGreenSpeed != 0 ||
+                       particleColorBlueSpeed != 0 || particleColorAlphaSpeed != 0) {
+                particle.color = Color(
+                    red: particle.color.red + particleColorRedSpeed * deltaTime,
+                    green: particle.color.green + particleColorGreenSpeed * deltaTime,
+                    blue: particle.color.blue + particleColorBlueSpeed * deltaTime,
+                    alpha: particle.color.alpha + particleColorAlphaSpeed * deltaTime
+                )
+            }
+
+            // Alpha: Sequence > Action > Speed-based
+            if let alphaSequence = particleAlphaSequence {
+                particle.alpha = alphaSequence.sampleFloat(atTime: progress)
+            } else if particle.actionComplete && particleAlphaSpeed != 0 {
+                particle.alpha += particleAlphaSpeed * deltaTime
+            }
             particle.alpha = max(0, min(1, particle.alpha))
 
-            // Update color blend factor
-            particle.colorBlendFactor += particleColorBlendFactorSpeed * deltaTime
+            // Color blend factor: Sequence > Action > Speed-based
+            if let blendSequence = particleColorBlendFactorSequence {
+                particle.colorBlendFactor = blendSequence.sampleFloat(atTime: progress)
+            } else if particle.actionComplete && particleColorBlendFactorSpeed != 0 {
+                particle.colorBlendFactor += particleColorBlendFactorSpeed * deltaTime
+            }
             particle.colorBlendFactor = max(0, min(1, particle.colorBlendFactor))
 
             particles[i] = particle
@@ -309,27 +464,52 @@ public final class SNEmitterNode: SNNode {
         particle.rotation = particleRotation + randomRange(-particleRotationRange / 2, particleRotationRange / 2)
         particle.rotationSpeed = particleRotationSpeed
 
-        // Scale
-        particle.scale = particleScale + randomRange(-particleScaleRange / 2, particleScaleRange / 2)
+        // Scale (use sequence start value if available)
+        if let scaleSequence = particleScaleSequence {
+            particle.scale = scaleSequence.sampleFloat(atTime: 0)
+        } else {
+            particle.scale = particleScale + randomRange(-particleScaleRange / 2, particleScaleRange / 2)
+        }
 
-        // Color
-        particle.color = Color(
-            red: particleColor.red + randomRange(-particleColorRedRange / 2, particleColorRedRange / 2),
-            green: particleColor.green + randomRange(-particleColorGreenRange / 2, particleColorGreenRange / 2),
-            blue: particleColor.blue + randomRange(-particleColorBlueRange / 2, particleColorBlueRange / 2),
-            alpha: particleColor.alpha + randomRange(-particleColorAlphaRange / 2, particleColorAlphaRange / 2)
-        )
+        // Color (use sequence start value if available)
+        if let colorSequence = particleColorSequence {
+            particle.color = colorSequence.sampleColor(atTime: 0)
+        } else {
+            particle.color = Color(
+                red: particleColor.red + randomRange(-particleColorRedRange / 2, particleColorRedRange / 2),
+                green: particleColor.green + randomRange(-particleColorGreenRange / 2, particleColorGreenRange / 2),
+                blue: particleColor.blue + randomRange(-particleColorBlueRange / 2, particleColorBlueRange / 2),
+                alpha: particleColor.alpha + randomRange(-particleColorAlphaRange / 2, particleColorAlphaRange / 2)
+            )
+        }
 
-        // Alpha
-        particle.alpha = particleAlpha + randomRange(-particleAlphaRange / 2, particleAlphaRange / 2)
+        // Alpha (use sequence start value if available)
+        if let alphaSequence = particleAlphaSequence {
+            particle.alpha = alphaSequence.sampleFloat(atTime: 0)
+        } else {
+            particle.alpha = particleAlpha + randomRange(-particleAlphaRange / 2, particleAlphaRange / 2)
+        }
         particle.alpha = max(0, min(1, particle.alpha))
 
-        // Color blend factor
-        particle.colorBlendFactor = particleColorBlendFactor + randomRange(-particleColorBlendFactorRange / 2, particleColorBlendFactorRange / 2)
+        // Color blend factor (use sequence start value if available)
+        if let blendSequence = particleColorBlendFactorSequence {
+            particle.colorBlendFactor = blendSequence.sampleFloat(atTime: 0)
+        } else {
+            particle.colorBlendFactor = particleColorBlendFactor + randomRange(-particleColorBlendFactorRange / 2, particleColorBlendFactorRange / 2)
+        }
         particle.colorBlendFactor = max(0, min(1, particle.colorBlendFactor))
 
         // Z position
         particle.zPosition = particleZPosition + randomRange(-particleZPositionRange / 2, particleZPositionRange / 2)
+
+        // Copy the texture
+        particle.texture = particleTexture
+
+        // Copy the action (if any)
+        if let action = particleAction {
+            particle.action = action.copy()
+            particle.actionComplete = false
+        }
 
         particles.append(particle)
     }
@@ -374,6 +554,9 @@ public final class SNEmitterNode: SNNode {
                 height: baseScale.height * particle.scale
             )
 
+            // Use particle's size if set (by action), otherwise use emitter's particleSize
+            let renderSize = particle.size ?? particleSize
+
             // Apply color blending
             var finalColor = particle.color
             if particle.colorBlendFactor > 0 {
@@ -385,16 +568,19 @@ public final class SNEmitterNode: SNNode {
                 )
             }
 
+            // Use particle's texture (may have been changed by action)
+            let texture = particle.texture ?? particleTexture
+
             let command = DrawCommand(
                 worldPosition: particleWorldPos,
                 worldRotation: particleRotation,
                 worldScale: particleScale,
-                size: particleSize,
+                size: renderSize,
                 anchorPoint: Point(x: 0.5, y: 0.5),
-                textureID: particleTexture?.textureID ?? .none,
-                textureRect: particleTexture?.textureRect() ?? Rect(x: 0, y: 0, width: 1, height: 1),
-                filteringMode: particleTexture?.filteringMode ?? .linear,
-                usesMipmaps: particleTexture?.usesMipmaps ?? false,
+                textureID: texture?.textureID ?? .none,
+                textureRect: texture?.textureRect() ?? Rect(x: 0, y: 0, width: 1, height: 1),
+                filteringMode: texture?.filteringMode ?? .linear,
+                usesMipmaps: texture?.usesMipmaps ?? false,
                 color: finalColor,
                 alpha: baseAlpha * particle.alpha,
                 zPosition: zPosition + particle.zPosition
@@ -428,6 +614,32 @@ private struct Particle {
     var zPosition: Float = 0
     var age: Float = 0
     var lifetime: Float = 1
+
+    // Size (can be changed by action, defaults to emitter's particleSize)
+    var size: Size?
+
+    // Texture (can be changed by action)
+    var texture: SNTexture?
+
+    // Action state
+    var action: Action?
+    var actionComplete: Bool = true
+}
+
+// MARK: - ParticleProxyNode
+
+/// A lightweight proxy node used to apply actions to particles.
+///
+/// This internal class provides a minimal node-like interface that actions
+/// can operate on, without the overhead of a full SNNode.
+internal final class ParticleProxyNode: SNSpriteNode {
+    // SNSpriteNode already has all the properties we need:
+    // - texture, color, colorBlendFactor, size, alpha
+    // - position, rotation, scale (from SNNode)
+
+    override init() {
+        super.init(color: .white, size: .zero)
+    }
 }
 
 // MARK: - Preset Emitters
@@ -578,6 +790,33 @@ extension SNEmitterNode {
         emitter.particleScale = 0.8
         emitter.particleScaleRange = 0.4
         emitter.particleScaleSpeed = -0.3
+        emitter.particleBlendMode = .add
+        return emitter
+    }
+
+    /// Creates an animated explosion emitter using particle actions.
+    ///
+    /// This demonstrates the use of `particleAction` for texture animation.
+    ///
+    /// - Parameters:
+    ///   - textures: An array of textures for the explosion animation.
+    ///   - timePerFrame: The duration for each frame of the animation.
+    ///   - particleCount: The number of particles to emit.
+    public static func animatedExplosion(
+        textures: [SNTexture],
+        timePerFrame: Float = 0.05,
+        particleCount: Int = 20
+    ) -> SNEmitterNode {
+        let emitter = SNEmitterNode()
+        emitter.particleBirthRate = Float(particleCount) * 5
+        emitter.numParticlesToEmit = particleCount
+        emitter.particleLifetime = Float(textures.count) * timePerFrame + 0.1
+        emitter.particleSpeed = 100
+        emitter.particleSpeedRange = 50
+        emitter.emissionAngleRange = .pi * 2
+        emitter.particleSize = Size(width: 32, height: 32)
+        emitter.particleTexture = textures.first
+        emitter.particleAction = SNAction.animate(with: textures, timePerFrame: timePerFrame, resize: false, restore: false)
         emitter.particleBlendMode = .add
         return emitter
     }

@@ -284,7 +284,7 @@ class VirtualDPad: Node {
 
 ## Input in Preview
 
-For SwiftUI previews, simulate input:
+For SwiftUI previews, use `SpriteView` with keyboard input handling:
 
 ```swift
 #Preview {
@@ -292,28 +292,42 @@ For SwiftUI previews, simulate input:
 }
 
 struct GameScenePreview: View {
-    @State private var scene = GameScene(size: Vec2(x: 800, y: 600))
-    @State private var input = InputState()
+    @State private var scene = GameScene(size: Size(width: 800, height: 600))
 
     var body: some View {
-        ZStack {
-            PreviewRenderer().render(
-                commands: scene.generateDrawCommands(),
-                viewport: scene.calculateViewport()
-            )
-
-            // Debug controls
-            VStack {
-                Spacer()
-                HStack {
-                    Button("Left") { input.left = true }
-                    Button("Right") { input.right = true }
-                    Button("Jump") { input.action = true }
-                }
+        SpriteView(
+            scene: scene,
+            options: [],
+            debugOptions: [.showsFPS, .showsNodeCount]
+        )
+        .focusable()
+        .onKeyPress(phases: .down) { keyPress in
+            guard let view = scene.view else { return .ignored }
+            switch keyPress.key {
+            case .leftArrow:
+                view.input.left = true
+            case .rightArrow:
+                view.input.right = true
+            case "z", "Z", .space:
+                view.input.action = true
+            default:
+                return .ignored
             }
+            return .handled
         }
-        .onAppear {
-            scene.sceneDidLoad()
+        .onKeyPress(phases: .up) { keyPress in
+            guard let view = scene.view else { return .ignored }
+            switch keyPress.key {
+            case .leftArrow:
+                view.input.left = false
+            case .rightArrow:
+                view.input.right = false
+            case "z", "Z", .space:
+                view.input.action = false
+            default:
+                return .ignored
+            }
+            return .handled
         }
     }
 }

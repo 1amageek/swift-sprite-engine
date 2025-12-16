@@ -1,20 +1,20 @@
 /// A container for per-node shader attribute values.
 ///
-/// `ShaderAttributeValue` holds the data for a single shader attribute
+/// `SNAttributeValue` holds the data for a single shader attribute
 /// that varies per node. Each node can have its own attribute values
 /// while sharing the same shader.
 ///
 /// ## Usage
 /// ```swift
 /// // Create attribute values for a node
-/// let colorValue = ShaderAttributeValue(vectorFloat4: (1.0, 0.0, 0.0, 1.0))
-/// let intensityValue = ShaderAttributeValue(float: 0.8)
+/// let colorValue = SNAttributeValue(vectorFloat4: (1.0, 0.0, 0.0, 1.0))
+/// let intensityValue = SNAttributeValue(float: 0.8)
 ///
 /// // Assign to a sprite
 /// sprite.setValue(colorValue, forAttribute: "a_color")
 /// sprite.setValue(intensityValue, forAttribute: "a_intensity")
 /// ```
-public final class ShaderAttributeValue {
+public final class SNAttributeValue {
     /// The type of data stored in this attribute value.
     public private(set) var type: AttributeType
 

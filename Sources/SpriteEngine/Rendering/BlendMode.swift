@@ -8,7 +8,7 @@
 /// ```swift
 /// sprite.blendMode = .add  // Additive blending for glow effects
 /// ```
-public enum BlendMode: Int, Hashable, Sendable {
+public enum SNBlendMode: Int, Hashable, Sendable {
     /// The source and destination colors are blended by multiplying
     /// the source alpha value.
     ///

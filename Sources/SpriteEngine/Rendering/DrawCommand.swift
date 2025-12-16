@@ -52,7 +52,7 @@ internal struct DrawCommand: Sendable {
     var zPosition: Float
 
     /// The blend mode used to combine this sprite with the framebuffer.
-    var blendMode: BlendMode
+    var blendMode: SNBlendMode
 
     /// The center rectangle for 9-part scaling.
     /// Default: (0, 0, 1, 1) means no 9-part scaling.
@@ -74,7 +74,7 @@ internal struct DrawCommand: Sendable {
         color: Color = .white,
         alpha: Float = 1,
         zPosition: Float = 0,
-        blendMode: BlendMode = .alpha,
+        blendMode: SNBlendMode = .alpha,
         centerRect: Rect = Rect(x: 0, y: 0, width: 1, height: 1)
     ) {
         self.worldPosition = worldPosition

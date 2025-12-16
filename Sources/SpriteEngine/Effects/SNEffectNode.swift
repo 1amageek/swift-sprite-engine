@@ -19,7 +19,7 @@
 /// cachedNode.shouldRasterize = true
 /// cachedNode.addChild(staticBackground)
 /// ```
-open class SNEffectNode: SNNode, Warpable {
+open class SNEffectNode: SNNode, SNWarpable {
     // MARK: - Effect Properties
 
     /// Whether effects should be applied when rendering children.
@@ -28,10 +28,10 @@ open class SNEffectNode: SNNode, Warpable {
 
     /// A custom shader applied to the rendered children.
     /// The shader processes the combined output of all children.
-    public var shader: Shader?
+    public var shader: SNShader?
 
     /// Per-node attribute values for the shader.
-    public var attributeValues: [String: ShaderAttributeValue] = [:]
+    public var attributeValues: [String: SNAttributeValue] = [:]
 
     // MARK: - Caching
 
@@ -46,12 +46,12 @@ open class SNEffectNode: SNNode, Warpable {
     // MARK: - Blending
 
     /// The blend mode used when compositing into the parent framebuffer.
-    public var blendMode: BlendMode = .alpha
+    public var blendMode: SNBlendMode = .alpha
 
-    // MARK: - Warpable
+    // MARK: - SNWarpable
 
     /// The warp geometry applied to this effect node.
-    public var warpGeometry: WarpGeometry?
+    public var warpGeometry: SNWarpGeometry?
 
     /// The number of subdivision levels for warp smoothing.
     public var subdivisionLevels: Int = 0
@@ -83,12 +83,12 @@ open class SNEffectNode: SNNode, Warpable {
     // MARK: - Shader Attributes
 
     /// Sets a shader attribute value.
-    public func setValue(_ value: ShaderAttributeValue, forAttribute name: String) {
+    public func setValue(_ value: SNAttributeValue, forAttribute name: String) {
         attributeValues[name] = value
     }
 
     /// Returns the shader attribute value for the given name.
-    public func value(forAttribute name: String) -> ShaderAttributeValue? {
+    public func value(forAttribute name: String) -> SNAttributeValue? {
         attributeValues[name]
     }
 

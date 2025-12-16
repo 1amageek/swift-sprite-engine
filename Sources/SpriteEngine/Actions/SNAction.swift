@@ -32,7 +32,7 @@ public class Action {
     public let duration: Float
 
     /// The timing function for this action.
-    public var timingMode: ActionTimingMode = .linear
+    public var timingMode: SNActionTimingMode = .linear
 
     /// A custom timing function that overrides `timingMode`.
     ///
@@ -137,7 +137,7 @@ public typealias SNAction = Action
 // MARK: - Timing Modes
 
 /// The timing function for an action's animation.
-public enum ActionTimingMode: Sendable {
+public enum SNActionTimingMode: Sendable {
     /// Linear interpolation.
     case linear
     /// Ease in (slow start).
@@ -1298,23 +1298,23 @@ public final class AnimateWithNormalTexturesAction: Action {
 
 /// Action that animates to a warp geometry.
 public final class WarpToAction: Action {
-    private let targetWarp: WarpGeometryGrid
-    private var startWarp: WarpGeometryGrid?
+    private let targetWarp: SNSNWarpGeometryGrid
+    private var startWarp: SNSNWarpGeometryGrid?
 
-    public init(warp: WarpGeometryGrid, duration: Float) {
+    public init(warp: SNSNWarpGeometryGrid, duration: Float) {
         self.targetWarp = warp
         super.init(duration: duration)
     }
 
     internal override func apply(to node: SNNode, progress: Float) {
-        guard let warpable = node as? Warpable else { return }
+        guard let warpable = node as? SNWarpable else { return }
 
         if startWarp == nil {
-            if let currentWarp = warpable.warpGeometry as? WarpGeometryGrid {
+            if let currentWarp = warpable.warpGeometry as? SNSNWarpGeometryGrid {
                 startWarp = currentWarp
             } else {
                 // Create a default grid matching target dimensions
-                startWarp = WarpGeometryGrid(
+                startWarp = SNSNWarpGeometryGrid(
                     columns: targetWarp.columns,
                     rows: targetWarp.rows
                 )
@@ -1323,7 +1323,7 @@ public final class WarpToAction: Action {
         guard let start = startWarp else { return }
 
         // Use the interpolate method which handles all the details
-        if let interpolated = WarpGeometryGrid.interpolate(from: start, to: targetWarp, progress: progress) {
+        if let interpolated = SNSNWarpGeometryGrid.interpolate(from: start, to: targetWarp, progress: progress) {
             warpable.warpGeometry = interpolated
         }
     }
@@ -1342,26 +1342,26 @@ public final class WarpToAction: Action {
 
 /// Action that animates through a sequence of warp geometries.
 public final class AnimateWithWarpsAction: Action {
-    private let warps: [WarpGeometryGrid]
+    private let warps: [SNSNWarpGeometryGrid]
     private let times: [Float]?
     private var currentIndex: Int = 0
 
     /// Creates an action that animates through warps with equal timing.
-    public init(warps: [WarpGeometryGrid], duration: Float) {
+    public init(warps: [SNSNWarpGeometryGrid], duration: Float) {
         self.warps = warps
         self.times = nil
         super.init(duration: duration)
     }
 
     /// Creates an action that animates through warps with specified times.
-    public init(warps: [WarpGeometryGrid], times: [Float]) {
+    public init(warps: [SNSNWarpGeometryGrid], times: [Float]) {
         self.warps = warps
         self.times = times
         super.init(duration: times.reduce(0, +))
     }
 
     internal override func apply(to node: SNNode, progress: Float) {
-        guard let warpable = node as? Warpable, !warps.isEmpty else { return }
+        guard let warpable = node as? SNWarpable, !warps.isEmpty else { return }
 
         let index: Int
         if let times = times {
@@ -2192,7 +2192,7 @@ extension Action {
     ///   - warp: The target warp geometry.
     ///   - duration: The animation duration.
     /// - Returns: An action that animates the warp.
-    public static func warp(to warp: WarpGeometryGrid, duration: Float) -> Action {
+    public static func warp(to warp: SNSNWarpGeometryGrid, duration: Float) -> Action {
         WarpToAction(warp: warp, duration: duration)
     }
 
@@ -2202,7 +2202,7 @@ extension Action {
     ///   - warps: The warp geometries to animate through.
     ///   - times: The durations for each warp.
     /// - Returns: An action that cycles through the warps.
-    public static func animate(withWarps warps: [WarpGeometryGrid], times: [Float]) -> Action {
+    public static func animate(withWarps warps: [SNSNWarpGeometryGrid], times: [Float]) -> Action {
         AnimateWithWarpsAction(warps: warps, times: times)
     }
 
@@ -2212,7 +2212,7 @@ extension Action {
     ///   - warps: The warp geometries to animate through.
     ///   - duration: The total animation duration.
     /// - Returns: An action that cycles through the warps.
-    public static func animate(withWarps warps: [WarpGeometryGrid], duration: Float) -> Action {
+    public static func animate(withWarps warps: [SNSNWarpGeometryGrid], duration: Float) -> Action {
         AnimateWithWarpsAction(warps: warps, duration: duration)
     }
 

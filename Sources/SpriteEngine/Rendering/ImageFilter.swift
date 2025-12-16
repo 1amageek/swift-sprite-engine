@@ -84,8 +84,8 @@ public struct ImageFilter: Hashable, Sendable {
 
         // MARK: Blend
         /// Blend with another color using a blend mode.
-        /// Uses `BlendMode` from `BlendMode.swift`.
-        case colorBlend(color: Color, mode: BlendMode)
+        /// Uses `SNBlendMode` from `BlendMode.swift`.
+        case colorBlend(color: Color, mode: SNBlendMode)
 
         // MARK: Generator
         /// Generate a solid color texture.
@@ -282,7 +282,7 @@ public struct ImageFilter: Hashable, Sendable {
     ///   - color: The color to blend.
     ///   - mode: The blend mode to use.
     /// - Returns: A color blend filter.
-    public static func colorBlend(_ color: Color, mode: BlendMode = .multiply) -> ImageFilter {
+    public static func colorBlend(_ color: Color, mode: SNBlendMode = .multiply) -> ImageFilter {
         ImageFilter(.colorBlend(color: color, mode: mode))
     }
 
@@ -468,7 +468,7 @@ public struct ColorMatrix: Hashable, Sendable {
     }
 }
 
-// Note: BlendMode is defined in BlendMode.swift and used for both
+// Note: SNBlendMode is defined in BlendMode.swift and used for both
 // sprite rendering and filter compositing operations.
 
 // MARK: - Filter Chain

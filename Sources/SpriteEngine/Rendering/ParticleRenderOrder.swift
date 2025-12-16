@@ -2,7 +2,7 @@
 ///
 /// Particle render order affects the visual stacking of particles
 /// and can impact performance.
-public enum ParticleRenderOrder: UInt, Hashable, Sendable {
+public enum SNParticleRenderOrder: UInt, Hashable, Sendable {
     /// Particles are rendered from newest to oldest.
     ///
     /// This is the default value. Newer particles appear on top

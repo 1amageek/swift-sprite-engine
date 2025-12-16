@@ -2,7 +2,7 @@
 
 ## Overview
 
-Wisp uses a **dual-backend rendering** architecture:
+SpriteEngine uses a **dual-backend rendering** architecture:
 - **WebGPU** (JavaScript): Production runtime in browsers
 - **SwiftUI Canvas**: Development preview in Xcode
 
@@ -31,14 +31,24 @@ Swift generates platform-agnostic `DrawCommand` arrays. Rendering backends consu
               ┌───────────────┴───────────────┐
               ▼                               ▼
 ┌─────────────────────────┐     ┌─────────────────────────┐
-│     WebGPURenderer      │     │    PreviewRenderer      │
-│     (JavaScript)        │     │    (SwiftUI Canvas)     │
+│     WebGPURenderer      │     │    CanvasRenderer       │
+│     (JavaScript)        │     │      (internal)         │
 │                         │     │                         │
-│  - GPUDevice            │     │  - Canvas context       │
-│  - RenderPipeline       │     │  - Path drawing         │
-│  - Texture atlas        │     │  - Image rendering      │
-│  - Instanced batching   │     │  - Debug overlays       │
+│  - GPUDevice            │     │  - 9-slice rendering    │
+│  - RenderPipeline       │     │  - Sprite rendering     │
+│  - Texture atlas        │     │  - Label rendering      │
+│  - Instanced batching   │     │  - Shape rendering      │
 └─────────────────────────┘     └─────────────────────────┘
+                                              ▲
+                                              │
+                                ┌─────────────────────────┐
+                                │       SpriteView        │
+                                │    (public SwiftUI)     │
+                                │                         │
+                                │  - Input handling       │
+                                │  - Debug overlays       │
+                                │  - Scene transitions    │
+                                └─────────────────────────┘
 ```
 
 ## DrawCommand
@@ -48,19 +58,22 @@ The fundamental unit of rendering data.
 ```swift
 struct DrawCommand {
     // Transform (world space)
-    var worldPosition: Vec2
+    var worldPosition: Point
     var worldRotation: Float
-    var worldScale: Vec2
+    var worldScale: Size
 
     // Sprite data
-    var size: Vec2
-    var anchorPoint: Vec2
-    var textureID: UInt32      // 0 = no texture (solid color)
+    var size: Size
+    var anchorPoint: Point
+    var textureID: TextureID      // .none = no texture (solid color)
 
     // Appearance
     var color: Color
     var alpha: Float
     var zPosition: Float
+
+    // 9-slice rendering
+    var centerRect: Rect          // Default: (0, 0, 1, 1) = no 9-slice
 }
 ```
 
@@ -70,18 +83,17 @@ For efficient transfer to WebGPU, DrawCommand is designed as a POD (Plain Old Da
 
 ```swift
 // Packed for GPU buffer transfer
-// Total: 52 bytes per command
 struct DrawCommand {
-    var worldPosition: Vec2    // 8 bytes (2 × Float)
-    var worldRotation: Float   // 4 bytes
-    var worldScale: Vec2       // 8 bytes
-    var size: Vec2             // 8 bytes
-    var anchorPoint: Vec2      // 8 bytes
-    var textureID: UInt32      // 4 bytes
-    var color: Color           // 16 bytes (4 × Float)
-    var alpha: Float           // 4 bytes
-    var zPosition: Float       // 4 bytes
-    // Padding: 4 bytes for 16-byte alignment
+    var worldPosition: Point       // 8 bytes (2 × Float)
+    var worldRotation: Float       // 4 bytes
+    var worldScale: Size           // 8 bytes
+    var size: Size                 // 8 bytes
+    var anchorPoint: Point         // 8 bytes
+    var textureID: TextureID       // 4 bytes
+    var color: Color               // 16 bytes (4 × Float)
+    var alpha: Float               // 4 bytes
+    var zPosition: Float           // 4 bytes
+    var centerRect: Rect           // 16 bytes (4 × Float)
 }
 ```
 
@@ -93,12 +105,12 @@ struct DrawCommand {
 func generateDrawCommands() -> [DrawCommand] {
     var commands: [DrawCommand] = []
 
-    func traverse(_ node: Node) {
+    func traverse(_ node: SNNode) {
         // Skip hidden nodes
         guard !node.isHidden else { return }
 
         // Generate command for drawable nodes
-        if let sprite = node as? Sprite {
+        if let sprite = node as? SNSpriteNode {
             commands.append(sprite.makeDrawCommand())
         }
 
@@ -108,7 +120,7 @@ func generateDrawCommands() -> [DrawCommand] {
         }
     }
 
-    traverse(scene)
+    traverse(self)
 
     // Sort by zPosition for correct layering
     commands.sort { $0.zPosition < $1.zPosition }
@@ -120,7 +132,7 @@ func generateDrawCommands() -> [DrawCommand] {
 ### Sprite Command Generation
 
 ```swift
-extension Sprite {
+extension SNSpriteNode {
     func makeDrawCommand() -> DrawCommand {
         DrawCommand(
             worldPosition: worldPosition,
@@ -128,21 +140,13 @@ extension Sprite {
             worldScale: worldScale,
             size: size,
             anchorPoint: anchorPoint,
-            textureID: texture?.rawValue ?? 0,
+            textureID: texture?.textureID ?? .none,
             color: color,
             alpha: worldAlpha,
-            zPosition: zPosition
+            zPosition: zPosition,
+            centerRect: centerRect
         )
     }
-}
-```
-
-## Renderer Protocol
-
-```swift
-protocol Renderer {
-    func render(commands: [DrawCommand], viewport: Rect)
-    func clear(color: Color)
 }
 ```
 
@@ -208,109 +212,175 @@ for (const [textureID, batch] of batches) {
 }
 ```
 
-## Preview Renderer (SwiftUI)
+## SwiftUI Preview Renderer
 
 For development, a SwiftUI-based renderer enables `#Preview` workflow.
 
-### Implementation
+### Architecture
+
+The preview rendering system consists of two components:
+
+| Component | Visibility | Purpose |
+|-----------|------------|---------|
+| `CanvasRenderer` | internal | Core rendering logic (sprites, labels, shapes, 9-slice) |
+| `SpriteView` | public | SwiftUI View with input handling and debug overlays |
+
+### CanvasRenderer
+
+The internal renderer handles all drawing operations:
 
 ```swift
-struct PreviewRenderer: Renderer {
-    func render(commands: [DrawCommand], viewport: Rect) -> some View {
-        Canvas { context, size in
-            // Clear background
-            context.fill(
-                Path(CGRect(origin: .zero, size: size)),
-                with: .color(backgroundColor)
-            )
+internal final class CanvasRenderer {
+    func render(
+        scene: SNScene,
+        commands: [DrawCommand],
+        labelCommands: [LabelDrawCommand],
+        in context: inout GraphicsContext,
+        size: CGSize,
+        showAudioIndicator: Bool = true
+    )
 
-            // Draw each command
-            for command in commands {
-                drawCommand(command, in: &context, size: size)
-            }
-        }
-    }
-
-    private func drawCommand(_ cmd: DrawCommand, in context: inout GraphicsContext, size: CGSize) {
-        // Calculate screen position
-        let screenPos = worldToScreen(cmd.worldPosition, viewport: viewport, size: size)
-
-        // Apply transforms
-        var transform = CGAffineTransform.identity
-        transform = transform.translatedBy(x: screenPos.x, y: screenPos.y)
-        transform = transform.rotated(by: CGFloat(cmd.worldRotation))
-        transform = transform.scaledBy(x: CGFloat(cmd.worldScale.x), y: CGFloat(cmd.worldScale.y))
-
-        context.transform = transform
-
-        // Draw sprite
-        let rect = CGRect(
-            x: -CGFloat(cmd.size.x * cmd.anchorPoint.x),
-            y: -CGFloat(cmd.size.y * cmd.anchorPoint.y),
-            width: CGFloat(cmd.size.x),
-            height: CGFloat(cmd.size.y)
-        )
-
-        if cmd.textureID != 0, let image = textureCache[cmd.textureID] {
-            context.draw(image, in: rect)
-        } else {
-            context.fill(Path(rect), with: .color(cmd.color.cgColor))
-        }
-    }
+    func renderCommand(_ command: DrawCommand, ...)
+    func renderNineSlice(cgImage:, centerRect:, destRect:, context:)
+    func renderLabelCommand(_ command: LabelDrawCommand, ...)
+    func renderShapeNodes(from node: SNNode, ...)
+    func renderAudioIndicator(context:, size:)
 }
 ```
 
-### Preview Usage
+### SpriteView
+
+The public SwiftUI View for displaying scenes:
+
+```swift
+public struct SpriteView: View {
+    public init(
+        scene: SNScene,
+        transition: SNTransition? = nil,
+        isPaused: Binding<Bool>? = nil,
+        preferredFramesPerSecond: Int = 60,
+        options: Options = [],
+        debugOptions: DebugOptions = []
+    )
+}
+```
+
+### Usage
 
 ```swift
 #Preview {
-    GameScenePreview()
+    SpriteView(
+        scene: GameScene(size: Size(width: 398, height: 224)),
+        debugOptions: [.showsFPS, .showsNodeCount]
+    )
 }
+```
 
-struct GameScenePreview: View {
-    @State private var scene = GameScene(size: Vec2(x: 800, y: 600))
+### Debug Options
 
-    var body: some View {
-        TimelineView(.animation) { timeline in
-            PreviewRenderer().render(
-                commands: scene.generateDrawCommands(),
-                viewport: scene.calculateViewport()
-            )
-        }
-        .onAppear {
-            scene.sceneDidLoad()
-        }
-    }
+```swift
+public struct DebugOptions: OptionSet {
+    public static let showsFPS = DebugOptions(rawValue: 1 << 0)
+    public static let showsNodeCount = DebugOptions(rawValue: 1 << 1)
+    public static let showsDrawCount = DebugOptions(rawValue: 1 << 2)
+    public static let showsQuadCount = DebugOptions(rawValue: 1 << 3)
+    public static let showsPhysics = DebugOptions(rawValue: 1 << 4)
+    public static let showsFields = DebugOptions(rawValue: 1 << 5)
 }
+```
+
+## 9-Slice (NinePatch) Rendering
+
+9-slice rendering allows textures to be scaled while preserving corners and edges.
+
+### centerRect Property
+
+The `centerRect` property defines the stretchable region in normalized coordinates [0, 1]:
+
+```swift
+sprite.centerRect = Rect(
+    x: 0,                    // Left edge (fixed)
+    y: 0.773,                // Bottom margin (fixed)
+    width: 1.0,              // Full width stretches
+    height: 0.045            // Center region stretches
+)
+```
+
+### Coordinate System
+
+SpriteEngine uses SpriteKit-compatible coordinates (Y=0 at bottom):
+
+```
+Texture (14x22px)           centerRect
+┌────────────────┐          ┌────────────────┐
+│  Top (fixed)   │ 4px      │ y+h = 0.818    │
+├────────────────┤          ├────────────────┤
+│ Center(stretch)│ 1px      │ y = 0.773      │
+├────────────────┤          │ height = 0.045 │
+│ Bottom (fixed) │ 17px     │                │
+└────────────────┘          └────────────────┘
+     Y=0 at bottom
+```
+
+### Example: HP Bar Frame
+
+```swift
+// Boss_bar.png: 14x22 pixels
+// Top 4px fixed, center 1px stretches, bottom 17px fixed
+let barFrame = SNSpriteNode(texture: SNTexture(imageNamed: "Boss_bar.png"))
+barFrame.size = Size(width: 14, height: 84)  // Stretched height
+barFrame.centerRect = Rect(
+    x: 0,
+    y: 17.0 / 22.0,       // 0.773 - bottom margin
+    width: 1.0,
+    height: 1.0 / 22.0    // 0.045 - center region
+)
+```
+
+### 9-Slice Regions
+
+```
+┌─────┬───────────┬─────┐
+│ TL  │    Top    │ TR  │  Fixed height
+├─────┼───────────┼─────┤
+│Left │  Center   │Right│  Stretches vertically
+├─────┼───────────┼─────┤
+│ BL  │  Bottom   │ BR  │  Fixed height
+└─────┴───────────┴─────┘
+  │         │         │
+  Fixed    Stretches  Fixed
+  width   horizontally width
 ```
 
 ## Texture Management
 
 ### TextureID
 
-Textures are referenced by opaque IDs, managed by the JavaScript layer:
+Textures are referenced by opaque IDs:
 
 ```swift
-struct TextureID: RawRepresentable, Hashable, Sendable {
-    let rawValue: UInt32
-
-    static let none = TextureID(rawValue: 0)
+public struct TextureID: RawRepresentable, Hashable, Sendable {
+    public let rawValue: UInt32
+    public static let none = TextureID(rawValue: 0)
 }
 ```
 
 ### Loading Flow
 
 ```
-1. JS: loadTexture("player.png")
+1. Native: SNTexture(imageNamed: "player.png")
+   └── Load CGImage from bundle
+   └── Store in imageCache[id]
+   └── Assign unique TextureID
+
+2. WASM: JS loadTexture("player.png")
    └── fetch() → createImageBitmap() → device.createTexture()
-   └── Store in textureMap[id] = gpuTexture
+   └── Store in textureMap[id]
    └── Return id to Swift via callback
 
-2. Swift: sprite.texture = TextureID(rawValue: id)
+3. Sprite: sprite.texture = texture
 
-3. Render: DrawCommand includes textureID
-
-4. JS: Look up GPUTexture by ID, bind to shader
+4. Render: DrawCommand includes textureID
 ```
 
 ### Texture Atlas
@@ -371,3 +441,10 @@ DrawCommand buffer is copied to GPU each frame:
 - Keep struct size minimal
 - Avoid unnecessary fields
 - Use appropriate data types (Float32 not Float64)
+
+### 9-Slice Performance
+
+9-slice rendering draws 9 separate images per sprite:
+- Use only when necessary (UI elements, HP bars)
+- Regular sprites are more efficient
+- Consider pre-rendering stretched versions for static elements

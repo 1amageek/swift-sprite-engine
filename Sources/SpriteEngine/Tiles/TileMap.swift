@@ -64,7 +64,7 @@ public final class SNTileMap: SNNode {
     public var colorBlendFactor: Float = 0
 
     /// The blend mode used when compositing tiles.
-    public var blendMode: BlendMode = .alpha
+    public var blendMode: SNBlendMode = .alpha
 
     // MARK: - Lighting
 
@@ -77,17 +77,17 @@ public final class SNTileMap: SNNode {
     // MARK: - Shader
 
     /// Defines a shader which is applied to each tile of the tile map.
-    public var shader: Shader?
+    public var shader: SNShader?
 
     /// The values of each attribute associated with the tile map's attached shader.
-    public var attributeValues: [String: ShaderAttributeValue] = [:]
+    public var attributeValues: [String: SNAttributeValue] = [:]
 
     /// Sets an attribute value for an attached shader.
     ///
     /// - Parameters:
     ///   - value: The attribute value.
     ///   - attribute: The attribute name.
-    public func setValue(_ value: ShaderAttributeValue, forAttribute attribute: String) {
+    public func setValue(_ value: SNAttributeValue, forAttribute attribute: String) {
         attributeValues[attribute] = value
     }
 
@@ -95,7 +95,7 @@ public final class SNTileMap: SNNode {
     ///
     /// - Parameter name: The attribute name.
     /// - Returns: The attribute value, or `nil` if not found.
-    public func value(forAttributeNamed name: String) -> ShaderAttributeValue? {
+    public func value(forAttributeNamed name: String) -> SNAttributeValue? {
         attributeValues[name]
     }
 
