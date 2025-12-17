@@ -16,10 +16,10 @@ public struct Range: Hashable, Sendable {
     // MARK: - Properties
 
     /// The minimum value of the range.
-    public var lowerLimit: Float
+    public var lowerLimit: CGFloat
 
     /// The maximum value of the range.
-    public var upperLimit: Float
+    public var upperLimit: CGFloat
 
     // MARK: - Initialization
 
@@ -29,7 +29,7 @@ public struct Range: Hashable, Sendable {
     ///   - lowerLimit: The minimum value.
     ///   - upperLimit: The maximum value.
     @inlinable
-    public init(lowerLimit: Float, upperLimit: Float) {
+    public init(lowerLimit: CGFloat, upperLimit: CGFloat) {
         self.lowerLimit = lowerLimit
         self.upperLimit = upperLimit
     }
@@ -40,7 +40,7 @@ public struct Range: Hashable, Sendable {
     ///   - value: The center value.
     ///   - variance: The maximum distance from the center value.
     @inlinable
-    public init(value: Float, variance: Float) {
+    public init(value: CGFloat, variance: CGFloat) {
         self.lowerLimit = value - variance
         self.upperLimit = value + variance
     }
@@ -49,7 +49,7 @@ public struct Range: Hashable, Sendable {
     ///
     /// - Parameter lowerLimit: The minimum value.
     @inlinable
-    public init(lowerLimit: Float) {
+    public init(lowerLimit: CGFloat) {
         self.lowerLimit = lowerLimit
         self.upperLimit = .infinity
     }
@@ -58,7 +58,7 @@ public struct Range: Hashable, Sendable {
     ///
     /// - Parameter upperLimit: The maximum value.
     @inlinable
-    public init(upperLimit: Float) {
+    public init(upperLimit: CGFloat) {
         self.lowerLimit = -.infinity
         self.upperLimit = upperLimit
     }
@@ -67,7 +67,7 @@ public struct Range: Hashable, Sendable {
     ///
     /// - Parameter constantValue: The constant value.
     @inlinable
-    public init(constantValue: Float) {
+    public init(constantValue: CGFloat) {
         self.lowerLimit = constantValue
         self.upperLimit = constantValue
     }
@@ -90,7 +90,7 @@ public struct Range: Hashable, Sendable {
     /// - Parameter value: The value to clamp.
     /// - Returns: The clamped value.
     @inlinable
-    public func clamp(_ value: Float) -> Float {
+    public func clamp(_ value: CGFloat) -> CGFloat {
         max(lowerLimit, min(upperLimit, value))
     }
 
@@ -99,7 +99,7 @@ public struct Range: Hashable, Sendable {
     /// - Parameter value: The value to check.
     /// - Returns: `true` if the value is within the range.
     @inlinable
-    public func contains(_ value: Float) -> Bool {
+    public func contains(_ value: CGFloat) -> Bool {
         value >= lowerLimit && value <= upperLimit
     }
 
@@ -107,13 +107,13 @@ public struct Range: Hashable, Sendable {
 
     /// The span of the range (upper - lower).
     @inlinable
-    public var span: Float {
+    public var span: CGFloat {
         upperLimit - lowerLimit
     }
 
     /// The center value of the range.
     @inlinable
-    public var center: Float {
+    public var center: CGFloat {
         (lowerLimit + upperLimit) / 2
     }
 
@@ -143,8 +143,8 @@ extension Range: CustomStringConvertible {
 extension Range: Codable {
     public init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
-        lowerLimit = try container.decode(Float.self)
-        upperLimit = try container.decode(Float.self)
+        lowerLimit = try container.decode(CGFloat.self)
+        upperLimit = try container.decode(CGFloat.self)
     }
 
     public func encode(to encoder: Encoder) throws {

@@ -40,7 +40,7 @@ public final class SNKeyframeSequence {
     private var values: [Any]
 
     /// The times for each keyframe (normalized to 0.0-1.0 range).
-    private var times: [Float]
+    private var times: [CGFloat]
 
     /// The mode used to determine how values for times between keyframes are calculated.
     public var interpolationMode: SNInterpolationMode = .linear
@@ -55,7 +55,7 @@ public final class SNKeyframeSequence {
     /// - Parameters:
     ///   - keyframeValues: An array of values for the keyframes.
     ///   - times: An array of times (0.0 to 1.0) for each keyframe.
-    public init(keyframeValues: [Any], times: [Float]) {
+    public init(keyframeValues: [Any], times: [CGFloat]) {
         precondition(keyframeValues.count == times.count, "Values and times arrays must have the same count")
         precondition(!keyframeValues.isEmpty, "Keyframe sequence must have at least one value")
 
@@ -69,7 +69,7 @@ public final class SNKeyframeSequence {
     ///
     /// - Parameter capacity: The initial capacity.
     public convenience init(capacity: Int) {
-        self.init(keyframeValues: [Float(0)], times: [Float(0)])
+        self.init(keyframeValues: [CGFloat(0)], times: [CGFloat(0)])
         self.values.reserveCapacity(capacity)
         self.times.reserveCapacity(capacity)
     }
@@ -81,7 +81,7 @@ public final class SNKeyframeSequence {
     /// - Parameters:
     ///   - value: The value for the keyframe.
     ///   - time: The time (0.0 to 1.0) for the keyframe.
-    public func addKeyframeValue(_ value: Any, time: Float) {
+    public func addKeyframeValue(_ value: Any, time: CGFloat) {
         // Find insertion point to maintain sorted order
         var insertIndex = times.count
         for (index, t) in times.enumerated() {
@@ -115,7 +115,7 @@ public final class SNKeyframeSequence {
     /// - Parameters:
     ///   - time: The new time.
     ///   - index: The index of the keyframe.
-    public func setKeyframeTime(_ time: Float, for index: Int) {
+    public func setKeyframeTime(_ time: CGFloat, for index: Int) {
         guard index >= 0 && index < times.count else { return }
         times[index] = time
     }
@@ -136,7 +136,7 @@ public final class SNKeyframeSequence {
     ///   - value: The new value.
     ///   - time: The new time.
     ///   - index: The index of the keyframe.
-    public func setKeyframeValue(_ value: Any, time: Float, for index: Int) {
+    public func setKeyframeValue(_ value: Any, time: CGFloat, for index: Int) {
         guard index >= 0 && index < values.count else { return }
         values[index] = value
         times[index] = time
@@ -153,7 +153,7 @@ public final class SNKeyframeSequence {
     ///
     /// - Parameter index: The index of the keyframe.
     /// - Returns: The time for the keyframe.
-    public func getKeyframeTime(for index: Int) -> Float {
+    public func getKeyframeTime(for index: Int) -> CGFloat {
         guard index >= 0 && index < times.count else { return 0 }
         return times[index]
     }
@@ -173,7 +173,7 @@ public final class SNKeyframeSequence {
     ///
     /// - Parameter time: The time to sample (0.0 to 1.0 for particle lifetime).
     /// - Returns: The interpolated value at the specified time.
-    public func sample(atTime time: Float) -> Any? {
+    public func sample(atTime time: CGFloat) -> Any? {
         guard !values.isEmpty else { return nil }
 
         // Handle repeat mode
@@ -206,7 +206,7 @@ public final class SNKeyframeSequence {
         // Calculate local progress between the two keyframes
         let lowerTime = times[lowerIndex]
         let upperTime = times[upperIndex]
-        let localProgress: Float
+        let localProgress: CGFloat
         if upperTime > lowerTime {
             localProgress = (normalizedTime - lowerTime) / (upperTime - lowerTime)
         } else {
@@ -217,18 +217,18 @@ public final class SNKeyframeSequence {
         return interpolate(from: values[lowerIndex], to: values[upperIndex], progress: localProgress)
     }
 
-    /// Samples the sequence and returns a Float value.
+    /// Samples the sequence and returns a CGFloat value.
     ///
     /// - Parameter time: The time to sample (0.0 to 1.0).
-    /// - Returns: The interpolated Float value.
-    public func sampleFloat(atTime time: Float) -> Float {
+    /// - Returns: The interpolated CGFloat value.
+    public func sampleCGFloat(atTime time: CGFloat) -> CGFloat {
         guard let value = sample(atTime: time) else { return 0 }
-        if let floatValue = value as? Float {
+        if let floatValue = value as? CGFloat {
             return floatValue
         } else if let intValue = value as? Int {
-            return Float(intValue)
+            return CGFloat(intValue)
         } else if let doubleValue = value as? Double {
-            return Float(doubleValue)
+            return CGFloat(doubleValue)
         }
         return 0
     }
@@ -237,7 +237,7 @@ public final class SNKeyframeSequence {
     ///
     /// - Parameter time: The time to sample (0.0 to 1.0).
     /// - Returns: The interpolated Color value.
-    public func sampleColor(atTime time: Float) -> Color {
+    public func sampleColor(atTime time: CGFloat) -> Color {
         guard let value = sample(atTime: time) else { return .white }
         if let color = value as? Color {
             return color
@@ -247,7 +247,7 @@ public final class SNKeyframeSequence {
 
     // MARK: - Private Helpers
 
-    private func normalizeTime(_ time: Float) -> Float {
+    private func normalizeTime(_ time: CGFloat) -> CGFloat {
         switch repeatMode {
         case .clamp:
             return max(0, min(1, time))
@@ -256,7 +256,7 @@ public final class SNKeyframeSequence {
         }
     }
 
-    private func interpolate(from: Any, to: Any, progress: Float) -> Any {
+    private func interpolate(from: Any, to: Any, progress: CGFloat) -> Any {
         switch interpolationMode {
         case .step:
             return from
@@ -269,15 +269,15 @@ public final class SNKeyframeSequence {
         }
     }
 
-    private func linearInterpolate(from: Any, to: Any, progress: Float) -> Any {
-        // Float interpolation
-        if let fromFloat = from as? Float, let toFloat = to as? Float {
+    private func linearInterpolate(from: Any, to: Any, progress: CGFloat) -> Any {
+        // CGFloat interpolation
+        if let fromFloat = from as? CGFloat, let toFloat = to as? CGFloat {
             return fromFloat + (toFloat - fromFloat) * progress
         }
 
-        // Int interpolation (return Float)
+        // Int interpolation (return CGFloat)
         if let fromInt = from as? Int, let toInt = to as? Int {
-            return Float(fromInt) + Float(toInt - fromInt) * progress
+            return CGFloat(fromInt) + CGFloat(toInt - fromInt) * progress
         }
 
         // Color interpolation
@@ -336,7 +336,7 @@ extension SNKeyframeSequence {
     /// - Parameters:
     ///   - floatValues: An array of Float values.
     ///   - times: An array of times (0.0 to 1.0) for each keyframe.
-    public convenience init(floatValues: [Float], times: [Float]) {
+    public convenience init(floatValues: [CGFloat], times: [CGFloat]) {
         self.init(keyframeValues: floatValues, times: times)
     }
 
@@ -345,7 +345,7 @@ extension SNKeyframeSequence {
     /// - Parameters:
     ///   - colors: An array of Color values.
     ///   - times: An array of times (0.0 to 1.0) for each keyframe.
-    public convenience init(colors: [Color], times: [Float]) {
+    public convenience init(colors: [Color], times: [CGFloat]) {
         self.init(keyframeValues: colors, times: times)
     }
 }

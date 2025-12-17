@@ -78,7 +78,7 @@ struct ConstraintTests {
         constraint.apply(to: node)
 
         // Should point toward (100, 100) which is 45 degrees = π/4
-        let expectedRotation = Float.pi / 4
+        let expectedRotation = CGFloat.pi / 4
         #expect(abs(node.rotation - expectedRotation) < 0.001)
     }
 
@@ -87,11 +87,11 @@ struct ConstraintTests {
         let node = SNNode()
         node.position = Point(x: 0, y: 0)
 
-        let constraint = SNConstraint.orient(to: Point(x: 100, y: 0), offset: Float.pi / 2)
+        let constraint = SNConstraint.orient(to: Point(x: 100, y: 0), offset: CGFloat.pi / 2)
         constraint.apply(to: node)
 
         // Base rotation to (100, 0) is 0, plus offset of π/2
-        #expect(abs(node.rotation - Float.pi / 2) < 0.001)
+        #expect(abs(node.rotation - CGFloat.pi / 2) < 0.001)
     }
 
     @Test("Disabled constraint does not apply")

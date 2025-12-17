@@ -8,7 +8,7 @@
 /// let scoreLabel = SNLabelNode(text: "Score: 0")
 /// scoreLabel.fontSize = 24
 /// scoreLabel.fontColor = .white
-/// scoreLabel.position = Point(x: 100, y: 500)
+/// scoreLabel.position = CGPoint(x: 100, y: 500)
 /// scene.addChild(scoreLabel)
 ///
 /// // Update text later
@@ -23,7 +23,7 @@ public final class SNLabelNode: SNNode {
     }
 
     /// The font size in points.
-    public var fontSize: Float = 16 {
+    public var fontSize: CGFloat = 16 {
         didSet {
             updateSize()
         }
@@ -42,10 +42,10 @@ public final class SNLabelNode: SNNode {
     public var verticalAlignment: VerticalAlignment = .center
 
     /// The calculated size of the label.
-    private var _size: Size = .zero
+    private var _size: CGSize = .zero
 
     /// The size of the label (computed from text).
-    public var size: Size {
+    public var size: CGSize {
         _size
     }
 
@@ -73,16 +73,16 @@ public final class SNLabelNode: SNNode {
         let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
         let maxLineLength = lines.map { $0.count }.max() ?? 0
 
-        _size = Size(
-            width: Float(maxLineLength) * charWidth,
-            height: Float(lines.count) * lineHeight
+        _size = CGSize(
+            width: CGFloat(maxLineLength) * charWidth,
+            height: CGFloat(lines.count) * lineHeight
         )
     }
 
     /// The bounding frame of this label.
-    public override var frame: Rect {
+    public override var frame: CGRect {
         let anchorOffset = anchorOffset(for: _size)
-        return Rect(
+        return CGRect(
             x: position.x - anchorOffset.x,
             y: position.y - anchorOffset.y,
             width: _size.width,
@@ -91,8 +91,8 @@ public final class SNLabelNode: SNNode {
     }
 
     /// Calculates anchor offset based on alignment.
-    private func anchorOffset(for size: Size) -> Point {
-        let x: Float
+    private func anchorOffset(for size: CGSize) -> CGPoint {
+        let x: CGFloat
         switch horizontalAlignment {
         case .left:
             x = 0
@@ -102,7 +102,7 @@ public final class SNLabelNode: SNNode {
             x = size.width
         }
 
-        let y: Float
+        let y: CGFloat
         switch verticalAlignment {
         case .top:
             y = size.height
@@ -112,7 +112,7 @@ public final class SNLabelNode: SNNode {
             y = 0
         }
 
-        return Point(x: x, y: y)
+        return CGPoint(x: x, y: y)
     }
 
     /// Creates a draw command for this label.
@@ -162,16 +162,16 @@ public struct LabelDrawCommand: Sendable {
     public let text: String
 
     /// The position in world coordinates.
-    public let worldPosition: Point
+    public let worldPosition: CGPoint
 
     /// The rotation in world coordinates.
-    public let worldRotation: Float
+    public let worldRotation: CGFloat
 
     /// The scale in world coordinates.
-    public let worldScale: Size
+    public let worldScale: CGSize
 
     /// The font size.
-    public let fontSize: Float
+    public let fontSize: CGFloat
 
     /// The font name (optional).
     public let fontName: String?
@@ -180,7 +180,7 @@ public struct LabelDrawCommand: Sendable {
     public let fontColor: Color
 
     /// The alpha transparency.
-    public let alpha: Float
+    public let alpha: CGFloat
 
     /// Horizontal alignment.
     public let horizontalAlignment: HorizontalAlignment
@@ -189,5 +189,5 @@ public struct LabelDrawCommand: Sendable {
     public let verticalAlignment: VerticalAlignment
 
     /// The z-position for sorting.
-    public let zPosition: Float
+    public let zPosition: CGFloat
 }

@@ -40,7 +40,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     public var gravity: Vector2 = Vector2(dx: 0, dy: -980)
 
     /// The speed multiplier for physics simulation.
-    public var speed: Float = 1.0
+    public var speed: CGFloat = 1.0
 
     /// The delegate that receives contact notifications.
     public weak var contactDelegate: SNPhysicsContactDelegate?
@@ -154,7 +154,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     /// Performs one step of physics simulation.
     ///
     /// - Parameter dt: The time step in seconds.
-    internal func simulate(dt: Float) {
+    internal func simulate(dt: CGFloat) {
         let scaledDt = dt * speed
         guard scaledDt > 0 else { return }
 
@@ -269,8 +269,8 @@ public final class SNPhysicsWorld: @unchecked Sendable {
                 bodyB: b,
                 contactPoint: contactPoint,
                 contactNormal: normal,
-                penetration: 0,
-                collisionImpulse: 0
+                penetration: Float(0),
+                collisionImpulse: Float(0)
             )
 
             contactDelegate?.didEnd(endContact)
@@ -280,7 +280,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     // MARK: - Continuous Collision Detection (CCD)
 
     /// Detects collisions for fast-moving bodies using swept collision detection.
-    private func detectCCDCollisions(dt: Float) {
+    private func detectCCDCollisions(dt: CGFloat) {
         for body in bodies where body.isDynamic && body.usesPreciseCollisionDetection {
             guard let node = body.node,
                   let previousPos = body.previousPosition else { continue }
@@ -292,7 +292,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
             guard movement.magnitude > 0.001 else { continue }
 
             // Find the earliest collision along the movement path
-            var earliestT: Float = 1.0
+            var earliestT: CGFloat = 1.0
             var earliestContact: (body: SNPhysicsBody, normal: Vector2)?
 
             for otherBody in bodies where otherBody !== body {
@@ -348,8 +348,8 @@ public final class SNPhysicsWorld: @unchecked Sendable {
                     bodyB: contact.body,
                     contactPoint: collisionPoint,
                     contactNormal: contact.normal,
-                    penetration: 0,
-                    collisionImpulse: abs(velocityAlongNormal) * body.mass
+                    penetration: Float(0),
+                    collisionImpulse: Float(abs(velocityAlongNormal) * body.mass)
                 )
 
                 let pair = ContactPair(body, contact.body)
@@ -369,7 +369,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     }
 
     /// Ray-box intersection returning the parametric t value and hit normal.
-    private func rayIntersectsRectWithT(from start: Point, direction: Vector2, rect: Rect) -> (Float, Vector2)? {
+    private func rayIntersectsRectWithT(from start: Point, direction: Vector2, rect: Rect) -> (CGFloat, Vector2)? {
         let invDir = Vector2(
             dx: direction.dx != 0 ? 1 / direction.dx : .infinity,
             dy: direction.dy != 0 ? 1 / direction.dy : .infinity
@@ -428,7 +428,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
                     let pair = ContactPair(bodyA, bodyB)
 
                     // Resolve collision and get impulse magnitude
-                    var impulseMagnitude: Float = 0
+                    var impulseMagnitude: CGFloat = 0
                     if shouldCollide(bodyA, bodyB) {
                         impulseMagnitude = resolveCollision(contact)
                     }
@@ -439,8 +439,8 @@ public final class SNPhysicsWorld: @unchecked Sendable {
                         bodyB: contact.bodyB,
                         contactPoint: contact.contactPoint,
                         contactNormal: contact.contactNormal,
-                        penetration: contact.penetration,
-                        collisionImpulse: impulseMagnitude
+                        penetration: Float(contact.penetration),
+                        collisionImpulse: Float(impulseMagnitude)
                     )
 
                     // Track this contact
@@ -500,7 +500,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
 
         // Determine collision normal (shortest axis)
         let normal: Vector2
-        let penetration: Float
+        let penetration: CGFloat
 
         if overlapX < overlapY {
             penetration = overlapX
@@ -521,13 +521,13 @@ public final class SNPhysicsWorld: @unchecked Sendable {
             bodyB: bodyB,
             contactPoint: contactPoint,
             contactNormal: normal,
-            penetration: penetration
+            penetration: Float(penetration)
         )
     }
 
     /// Resolves a collision and returns the impulse magnitude in Newton-seconds.
     @discardableResult
-    private func resolveCollision(_ contact: SNPhysicsContact) -> Float {
+    private func resolveCollision(_ contact: SNPhysicsContact) -> CGFloat {
         let bodyA = contact.bodyA
         let bodyB = contact.bodyB
 
@@ -538,7 +538,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
         let bDynamic = bodyB.isDynamic && !bodyB.pinned
 
         // Separate bodies
-        let separation = contact.contactNormal * contact.penetration
+        let separation = contact.contactNormal * CGFloat(contact.penetration)
 
         if aDynamic && bDynamic {
             // Both dynamic: split separation
@@ -740,7 +740,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     public func enumerateBodies(alongRayStart start: Point, end: Point,
                                 using block: (SNPhysicsBody, Point, Vector2, UnsafeMutablePointer<Bool>) -> Void) {
         // Collect all ray hits
-        var hits: [(body: SNPhysicsBody, point: Point, normal: Vector2, distance: Float)] = []
+        var hits: [(body: SNPhysicsBody, point: Point, normal: Vector2, distance: CGFloat)] = []
 
         for body in bodies {
             guard let node = body.node else { continue }
@@ -773,7 +773,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     /// - Returns: A `SNPhysicsRaycastResult` containing hit information, or nil if no body is hit.
     public func raycast(from start: Point, to end: Point) -> SNPhysicsRaycastResult? {
         var closestResult: SNPhysicsRaycastResult?
-        var closestDistance: Float = .infinity
+        var closestDistance: CGFloat = .infinity
 
         for body in bodies {
             guard let node = body.node else { continue }
@@ -787,7 +787,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
                         body: body,
                         point: intersection,
                         normal: normal,
-                        distance: distance
+                        distance: Float(distance)
                     )
                 }
             }
@@ -815,7 +815,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
                     body: body,
                     point: intersection,
                     normal: normal,
-                    distance: distance
+                    distance: Float(distance)
                 ))
             }
         }
@@ -941,7 +941,7 @@ public final class SNPhysicsWorld: @unchecked Sendable {
     }
 
     /// Calculates the total field force for a physics body at a given position.
-    private func calculateFieldForce(for body: SNPhysicsBody, at position: Point, fields: [SNFieldNode], dt: Float) -> Vector2 {
+    private func calculateFieldForce(for body: SNPhysicsBody, at position: Point, fields: [SNFieldNode], dt: CGFloat) -> Vector2 {
         guard !fields.isEmpty else { return .zero }
 
         var totalForce = Vector2.zero

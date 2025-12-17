@@ -49,8 +49,8 @@ public final class SNTileMap: SNNode {
     /// The total size of the tile map in points.
     public var mapSize: Size {
         Size(
-            width: Float(numberOfColumns) * tileSize.width,
-            height: Float(numberOfRows) * tileSize.height
+            width: CGFloat(numberOfColumns) * tileSize.width,
+            height: CGFloat(numberOfRows) * tileSize.height
         )
     }
 
@@ -61,7 +61,7 @@ public final class SNTileMap: SNNode {
 
     /// Controls the blending between textures and the color.
     /// 0 = no color blending, 1 = maximum color blending.
-    public var colorBlendFactor: Float = 0
+    public var colorBlendFactor: CGFloat = 0
 
     /// The blend mode used when compositing tiles.
     public var blendMode: SNBlendMode = .alpha
@@ -228,8 +228,8 @@ public final class SNTileMap: SNNode {
     ///   - row: The row index.
     /// - Returns: The center point of the tile.
     public func centerOfTile(atColumn column: Int, row: Int) -> Point {
-        let x = (Float(column) + 0.5) * tileSize.width - anchorPoint.x * mapSize.width
-        let y = (Float(row) + 0.5) * tileSize.height - anchorPoint.y * mapSize.height
+        let x = (CGFloat(column) + 0.5) * tileSize.width - anchorPoint.x * mapSize.width
+        let y = (CGFloat(row) + 0.5) * tileSize.height - anchorPoint.y * mapSize.height
         return Point(x: x, y: y)
     }
 
@@ -331,7 +331,7 @@ public final class SNTileMap: SNNode {
     ///   - visibleRect: The visible area in node coordinates.
     ///   - currentTime: The current time for animation.
     /// - Returns: An array of draw commands for visible tiles.
-    internal func generateDrawCommands(visibleRect: Rect? = nil, currentTime: Float = 0) -> [DrawCommand] {
+    internal func generateDrawCommands(visibleRect: Rect? = nil, currentTime: CGFloat = 0) -> [DrawCommand] {
         var commands: [DrawCommand] = []
 
         // Determine visible tile range

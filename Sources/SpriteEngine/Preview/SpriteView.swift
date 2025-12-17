@@ -318,12 +318,12 @@ internal class SpriteViewController: ObservableObject {
         guard isRunning else { return }
 
         // Update view size for coordinate conversion
-        view.viewSize = Size(width: Float(viewSize.width), height: Float(viewSize.height))
+        view.viewSize = Size(width: CGFloat(viewSize.width), height: CGFloat(viewSize.height))
 
         // Calculate delta time
-        let dt: Float
+        let dt: CGFloat
         if let last = lastUpdate {
-            dt = Float(date.timeIntervalSince(last))
+            dt = CGFloat(date.timeIntervalSince(last))
         } else {
             dt = 0
         }
@@ -339,8 +339,8 @@ internal class SpriteViewController: ObservableObject {
 
     func handlePointerMove(at location: CGPoint, in size: CGSize) {
         view.gameLoop.input.pointerPosition = Point(
-            x: Float(location.x),
-            y: Float(size.height - location.y)  // Flip Y for game coordinates
+            x: CGFloat(location.x),
+            y: CGFloat(size.height - location.y)  // Flip Y for game coordinates
         )
     }
 

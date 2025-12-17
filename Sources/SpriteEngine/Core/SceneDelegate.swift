@@ -33,7 +33,7 @@ public protocol SNSceneDelegate: AnyObject {
     /// - Parameters:
     ///   - dt: The time interval since the last update.
     ///   - scene: The scene being updated.
-    func update(_ dt: Float, for scene: SNScene)
+    func update(_ dt: CGFloat, for scene: SNScene)
 
     /// Called after scene actions have been evaluated.
     ///
@@ -69,7 +69,7 @@ public protocol SNSceneDelegate: AnyObject {
 
 extension SNSceneDelegate {
     /// Default empty implementation.
-    public func update(_ dt: Float, for scene: SNScene) {}
+    public func update(_ dt: CGFloat, for scene: SNScene) {}
 
     /// Default empty implementation.
     public func didEvaluateActions(for scene: SNScene) {}

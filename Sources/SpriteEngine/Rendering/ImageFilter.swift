@@ -364,7 +364,7 @@ public struct ImageFilter: Hashable, Sendable {
 /// after the matrix multiplication.
 public struct ColorMatrix: Hashable, Sendable {
     /// Matrix values in row-major order (4 rows × 5 columns).
-    public var values: [Float]
+    public var values: [CGFloat]
 
     /// Creates an identity color matrix.
     public init() {
@@ -379,7 +379,7 @@ public struct ColorMatrix: Hashable, Sendable {
     /// Creates a color matrix with the specified values.
     ///
     /// - Parameter values: 20 float values in row-major order.
-    public init(values: [Float]) {
+    public init(values: [CGFloat]) {
         precondition(values.count == 20, "ColorMatrix requires exactly 20 values")
         self.values = values
     }
@@ -390,10 +390,10 @@ public struct ColorMatrix: Hashable, Sendable {
     /// Creates a saturation adjustment matrix.
     ///
     /// - Parameter s: Saturation multiplier. 0 = grayscale, 1 = original.
-    public static func saturation(_ s: Float) -> ColorMatrix {
-        let lumR: Float = 0.3086
-        let lumG: Float = 0.6094
-        let lumB: Float = 0.0820
+    public static func saturation(_ s: CGFloat) -> ColorMatrix {
+        let lumR: CGFloat = 0.3086
+        let lumG: CGFloat = 0.6094
+        let lumB: CGFloat = 0.0820
 
         let sr = (1 - s) * lumR
         let sg = (1 - s) * lumG
@@ -410,7 +410,7 @@ public struct ColorMatrix: Hashable, Sendable {
     /// Creates a brightness adjustment matrix.
     ///
     /// - Parameter b: Brightness offset (-1 to 1).
-    public static func brightness(_ b: Float) -> ColorMatrix {
+    public static func brightness(_ b: CGFloat) -> ColorMatrix {
         ColorMatrix(values: [
             1, 0, 0, 0, b,
             0, 1, 0, 0, b,
@@ -422,7 +422,7 @@ public struct ColorMatrix: Hashable, Sendable {
     /// Creates a contrast adjustment matrix.
     ///
     /// - Parameter c: Contrast multiplier.
-    public static func contrast(_ c: Float) -> ColorMatrix {
+    public static func contrast(_ c: CGFloat) -> ColorMatrix {
         let t = (1 - c) / 2
         return ColorMatrix(values: [
             c, 0, 0, 0, t,
@@ -435,7 +435,7 @@ public struct ColorMatrix: Hashable, Sendable {
     /// Creates a sepia tone matrix.
     ///
     /// - Parameter intensity: Effect intensity (0 to 1).
-    public static func sepia(_ intensity: Float = 1) -> ColorMatrix {
+    public static func sepia(_ intensity: CGFloat = 1) -> ColorMatrix {
         let i = intensity
         let ni = 1 - intensity
 
@@ -449,11 +449,11 @@ public struct ColorMatrix: Hashable, Sendable {
 
     /// Multiplies two color matrices.
     public static func * (lhs: ColorMatrix, rhs: ColorMatrix) -> ColorMatrix {
-        var result = [Float](repeating: 0, count: 20)
+        var result = [CGFloat](repeating: 0, count: 20)
 
         for row in 0..<4 {
             for col in 0..<5 {
-                var sum: Float = 0
+                var sum: CGFloat = 0
                 for k in 0..<4 {
                     sum += lhs.values[row * 5 + k] * rhs.values[k * 5 + col]
                 }

@@ -21,6 +21,8 @@ let package = Package(
         // WASM dependencies - always included in manifest, conditionally used in code
         .package(url: "https://github.com/1amageek/swift-webgpu", branch: "main"),
         .package(url: "https://github.com/swiftwasm/JavaScriptKit", from: "0.22.0"),
+        // CoreGraphics compatibility for WASM
+        .package(url: "https://github.com/1amageek/OpenCoreGraphics", branch: "main"),
     ],
     targets: [
         .target(
@@ -29,6 +31,7 @@ let package = Package(
                 .product(name: "SwiftWebGPU", package: "swift-webgpu", condition: .when(platforms: [.wasi])),
                 .product(name: "JavaScriptKit", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
+                .product(name: "OpenCoreGraphics", package: "OpenCoreGraphics", condition: .when(platforms: [.wasi])),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency")

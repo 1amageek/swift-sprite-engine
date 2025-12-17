@@ -55,7 +55,7 @@ public final class SNShapeNode: SNNode {
     public var strokeTexture: SNTexture?
 
     /// The width of the stroke in points.
-    public var lineWidth: Float = 1.0
+    public var lineWidth: CGFloat = 1.0
 
     /// Whether the path is antialiased when rendered.
     public var isAntialiased: Bool = true
@@ -64,7 +64,7 @@ public final class SNShapeNode: SNNode {
 
     /// The radius of the glow effect around the shape.
     /// Set to 0 for no glow.
-    public var glowWidth: Float = 0
+    public var glowWidth: CGFloat = 0
 
     // MARK: - Line Cap and Join
 
@@ -75,7 +75,7 @@ public final class SNShapeNode: SNNode {
     public var lineJoin: LineJoin = .miter
 
     /// The limit for miter joins before they become bevel joins.
-    public var miterLimit: Float = 10
+    public var miterLimit: CGFloat = 10
 
     // MARK: - Blending
 
@@ -110,8 +110,8 @@ public final class SNShapeNode: SNNode {
 
         let strokeOffset = lineWidth / 2
         return Rect(
-            x: position.x + bounds.x - strokeOffset,
-            y: position.y + bounds.y - strokeOffset,
+            x: position.x + bounds.minX - strokeOffset,
+            y: position.y + bounds.minY - strokeOffset,
             width: bounds.width + lineWidth,
             height: bounds.height + lineWidth
         )
@@ -177,7 +177,7 @@ extension SNShapeNode {
     ///   - size: The size of the rectangle.
     ///   - cornerRadius: The radius of the corners.
     /// - Returns: A shape node configured as a rounded rectangle.
-    public static func rectangle(size: Size, cornerRadius: Float) -> SNShapeNode {
+    public static func rectangle(size: Size, cornerRadius: CGFloat) -> SNShapeNode {
         var path = ShapePath()
         path.addRoundedRect(
             Rect(origin: Point(x: -size.width / 2, y: -size.height / 2), size: size),
@@ -191,7 +191,7 @@ extension SNShapeNode {
     ///
     /// - Parameter radius: The radius of the circle.
     /// - Returns: A shape node configured as a circle.
-    public static func circle(radius: Float) -> SNShapeNode {
+    public static func circle(radius: CGFloat) -> SNShapeNode {
         var path = ShapePath()
         path.addEllipse(in: Rect(
             x: -radius,
@@ -260,12 +260,12 @@ extension SNShapeNode {
     ///   - sides: The number of sides (minimum 3).
     ///   - radius: The radius of the circumscribed circle.
     /// - Returns: A shape node configured as a regular polygon.
-    public static func regularPolygon(sides: Int, radius: Float) -> SNShapeNode {
+    public static func regularPolygon(sides: Int, radius: CGFloat) -> SNShapeNode {
         let n = max(3, sides)
         var points: [Point] = []
 
         for i in 0..<n {
-            let angle = Float(i) * 2 * .pi / Float(n) - .pi / 2
+            let angle = CGFloat(i) * 2 * .pi / CGFloat(n) - .pi / 2
             let x = cos(angle) * radius
             let y = sin(angle) * radius
             points.append(Point(x: x, y: y))
@@ -281,12 +281,12 @@ extension SNShapeNode {
     ///   - outerRadius: The radius to the outer points.
     ///   - innerRadius: The radius to the inner points.
     /// - Returns: A shape node configured as a star.
-    public static func star(points: Int, outerRadius: Float, innerRadius: Float) -> SNShapeNode {
+    public static func star(points: Int, outerRadius: CGFloat, innerRadius: CGFloat) -> SNShapeNode {
         let n = max(3, points)
         var pathPoints: [Point] = []
 
         for i in 0..<(n * 2) {
-            let angle = Float(i) * .pi / Float(n) - .pi / 2
+            let angle = CGFloat(i) * .pi / CGFloat(n) - .pi / 2
             let radius = i % 2 == 0 ? outerRadius : innerRadius
             let x = cos(angle) * radius
             let y = sin(angle) * radius

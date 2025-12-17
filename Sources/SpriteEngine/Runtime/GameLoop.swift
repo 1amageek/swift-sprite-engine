@@ -20,10 +20,10 @@ public final class GameLoop: @unchecked Sendable {
     // MARK: - Configuration
 
     /// The fixed timestep for each update (default: 1/60 second).
-    public var fixedTimestep: Float
+    public var fixedTimestep: CGFloat
 
     /// Maximum time to process per frame to prevent spiral of death.
-    public var maxFrameTime: Float = 0.25
+    public var maxFrameTime: CGFloat = 0.25
 
     // MARK: - State
 
@@ -31,10 +31,10 @@ public final class GameLoop: @unchecked Sendable {
     public internal(set) var scene: SNScene?
 
     /// Accumulated time waiting to be processed.
-    internal var accumulator: Float = 0
+    internal var accumulator: CGFloat = 0
 
     /// Total elapsed simulation time.
-    public private(set) var totalTime: Float = 0
+    public private(set) var totalTime: CGFloat = 0
 
     /// Current input state.
     public var input: InputState = InputState()
@@ -51,7 +51,7 @@ public final class GameLoop: @unchecked Sendable {
     public private(set) var frameCount: UInt64 = 0
 
     /// Current update rate (updates per second).
-    public var updatesPerSecond: Float {
+    public var updatesPerSecond: CGFloat {
         1.0 / fixedTimestep
     }
 
@@ -60,7 +60,7 @@ public final class GameLoop: @unchecked Sendable {
     /// Creates a game loop with the specified timestep.
     ///
     /// - Parameter fixedTimestep: The fixed time between updates (default: 1/60).
-    public init(fixedTimestep: Float = 1.0 / 60.0) {
+    public init(fixedTimestep: CGFloat = 1.0 / 60.0) {
         self.fixedTimestep = fixedTimestep
     }
 
@@ -69,7 +69,7 @@ public final class GameLoop: @unchecked Sendable {
     /// - Parameters:
     ///   - scene: The scene to update and render.
     ///   - fixedTimestep: The fixed time between updates.
-    public init(scene: SNScene, fixedTimestep: Float = 1.0 / 60.0) {
+    public init(scene: SNScene, fixedTimestep: CGFloat = 1.0 / 60.0) {
         self.scene = scene
         self.fixedTimestep = fixedTimestep
     }
@@ -110,7 +110,7 @@ public final class GameLoop: @unchecked Sendable {
     /// - Parameters:
     ///   - realDeltaTime: Actual elapsed time since last tick (in seconds).
     ///   - input: Current input state from JavaScript.
-    public func tick(realDeltaTime: Float, input: InputState) {
+    public func tick(realDeltaTime: CGFloat, input: InputState) {
         guard let scene = scene, !scene.isPaused else {
             updatesThisTick = 0
             return
@@ -174,7 +174,7 @@ public final class GameLoop: @unchecked Sendable {
     ///
     /// This value (0-1) represents how far we are between the last
     /// update and the next. Use for interpolating render positions.
-    public var interpolationAlpha: Float {
+    public var interpolationAlpha: CGFloat {
         accumulator / fixedTimestep
     }
 

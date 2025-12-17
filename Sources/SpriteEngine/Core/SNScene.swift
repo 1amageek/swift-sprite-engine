@@ -14,8 +14,8 @@
 ///     var player: SNSpriteNode!
 ///
 ///     override func sceneDidLoad() {
-///         player = SNSpriteNode(color: .blue, size: Size(width: 50, height: 50))
-///         player.position = Point(x: size.width / 2, y: size.height / 2)
+///         player = SNSpriteNode(color: .blue, size: CGSize(width: 50, height: 50))
+///         player.position = CGPoint(x: size.width / 2, y: size.height / 2)
 ///         addChild(player)
 ///
 ///         let camera = SNCamera()
@@ -23,13 +23,13 @@
 ///         self.camera = camera
 ///     }
 ///
-///     override func update(dt: Float) {
+///     override func update(dt: CGFloat) {
 ///         // Game logic here
 ///         camera?.position = player.position
 ///     }
 /// }
 ///
-/// let scene = GameScene(size: Size(width: 800, height: 600))
+/// let scene = GameScene(size: CGSize(width: 800, height: 600))
 /// scene.scaleMode = .aspectFit
 /// ```
 ///
@@ -54,7 +54,7 @@ open class SNScene: SNEffectNode {
 
     /// The dimensions of the scene in points.
     /// Defines the scene's coordinate space.
-    public var size: Size
+    public var size: CGSize
 
     /// Determines how the scene is scaled to fit the view.
     public var scaleMode: ScaleMode = .aspectFit
@@ -62,7 +62,7 @@ open class SNScene: SNEffectNode {
     /// The point in the view that corresponds to the scene's origin.
     /// Default: (0.5, 0.5) for center.
     /// Only used when no camera is assigned.
-    public var anchorPoint: Point = Point(x: 0.5, y: 0.5)
+    public var anchorPoint: CGPoint = CGPoint(x: 0.5, y: 0.5)
 
     /// The background color of the scene.
     public var backgroundColor: Color = .black
@@ -85,7 +85,7 @@ open class SNScene: SNEffectNode {
     public var isPaused: Bool = false
 
     /// Total elapsed simulation time in seconds.
-    public private(set) var currentTime: Float = 0
+    public private(set) var currentTime: CGFloat = 0
 
     /// Current input state for this frame.
     public var input: InputState = InputState()
@@ -162,7 +162,7 @@ open class SNScene: SNEffectNode {
     /// Creates a scene with the specified size.
     ///
     /// - Parameter size: The logical size of the scene in points.
-    public init(size: Size) {
+    public init(size: CGSize) {
         self.size = size
         super.init()
         self.scene = self  // Scene is its own scene reference
@@ -209,14 +209,14 @@ open class SNScene: SNEffectNode {
     /// the camera to accommodate the new size.
     ///
     /// - Parameter oldSize: The previous size of the scene.
-    open func didChangeSize(_ oldSize: Size) {
+    open func didChangeSize(_ oldSize: CGSize) {
         // Override in subclasses
     }
 
     /// Changes the scene's size and notifies via `didChangeSize(_:)`.
     ///
     /// - Parameter newSize: The new size for the scene.
-    public func resize(to newSize: Size) {
+    public func resize(to newSize: CGSize) {
         let oldSize = size
         size = newSize
         if let delegate = delegate {
@@ -234,7 +234,7 @@ open class SNScene: SNEffectNode {
     ///
     /// Override this method to implement your game logic. The base
     /// implementation updates all child nodes recursively.
-    open override func update(dt: Float) {
+    open override func update(dt: CGFloat) {
         // Update all children
         for child in children {
             child.updateRecursive(dt: dt)
@@ -287,7 +287,7 @@ open class SNScene: SNEffectNode {
     /// If a delegate is set, delegate methods are called instead of scene methods.
     ///
     /// - Parameter dt: The delta time (typically the fixed timestep).
-    public func processFrame(dt: Float) {
+    public func processFrame(dt: CGFloat) {
         guard !isPaused else { return }
 
         // Clear audio command buffer for this frame
@@ -360,11 +360,11 @@ open class SNScene: SNEffectNode {
     }
 
     /// Recursively evaluates actions on all nodes.
-    private func evaluateActions(dt: Float) {
+    private func evaluateActions(dt: CGFloat) {
         evaluateActionsRecursive(on: self, dt: dt)
     }
 
-    private func evaluateActionsRecursive(on node: SNNode, dt: Float) {
+    private func evaluateActionsRecursive(on node: SNNode, dt: CGFloat) {
         // Evaluate actions on this node in insertion order (deterministic)
         var completedKeys: [String] = []
         for (key, action) in node.actions {
@@ -413,7 +413,7 @@ open class SNScene: SNEffectNode {
     }
 
     /// Recursively collects draw commands from a node and its descendants.
-    private func collectDrawCommands(from node: SNNode, into commands: inout [DrawCommand], viewport: Rect) {
+    private func collectDrawCommands(from node: SNNode, into commands: inout [DrawCommand], viewport: CGRect) {
         // Skip hidden nodes
         guard !node.isHidden else { return }
 
@@ -425,7 +425,7 @@ open class SNScene: SNEffectNode {
         // Generate commands for tile maps
         if let tileMap = node as? SNTileMap, tileMap.alpha > 0 {
             // Transform viewport to tile map's local coordinate space
-            let localViewport = Rect(
+            let localViewport = CGRect(
                 x: viewport.origin.x - tileMap.position.x,
                 y: viewport.origin.y - tileMap.position.y,
                 width: viewport.size.width,
@@ -464,12 +464,12 @@ open class SNScene: SNEffectNode {
     /// Otherwise, uses the scene's anchor point.
     ///
     /// - Returns: The visible area in scene coordinates.
-    public func calculateViewport() -> Rect {
+    public func calculateViewport() -> CGRect {
         if let camera = camera {
             return camera.viewport(for: size)
         } else {
             // Use anchor point to determine viewport
-            return Rect(
+            return CGRect(
                 x: -size.width * anchorPoint.x,
                 y: -size.height * anchorPoint.y,
                 width: size.width,
@@ -486,10 +486,10 @@ open class SNScene: SNEffectNode {
     ///   - point: The point in view coordinates.
     ///   - viewSize: The size of the view.
     /// - Returns: The point in scene coordinates.
-    public func convertPoint(fromView point: Point, viewSize: Size) -> Point {
+    public func convertPoint(fromView point: CGPoint, viewSize: CGSize) -> CGPoint {
         // Calculate scale based on scale mode
-        let scaleX: Float
-        let scaleY: Float
+        let scaleX: CGFloat
+        let scaleY: CGFloat
 
         switch scaleMode {
         case .fill:
@@ -509,7 +509,7 @@ open class SNScene: SNEffectNode {
         }
 
         // Convert view point to scene point
-        var scenePoint = Point(
+        var scenePoint = CGPoint(
             x: (point.x - viewSize.width / 2) * scaleX,
             y: (point.y - viewSize.height / 2) * scaleY
         )
@@ -532,7 +532,7 @@ open class SNScene: SNEffectNode {
     ///   - point: The point in scene coordinates.
     ///   - viewSize: The size of the view.
     /// - Returns: The point in view coordinates.
-    public func convertPoint(toView point: Point, viewSize: Size) -> Point {
+    public func convertPoint(toView point: CGPoint, viewSize: CGSize) -> CGPoint {
         var viewPoint = point
 
         // Apply camera transform if present
@@ -545,8 +545,8 @@ open class SNScene: SNEffectNode {
         }
 
         // Calculate scale based on scale mode
-        let scaleX: Float
-        let scaleY: Float
+        let scaleX: CGFloat
+        let scaleY: CGFloat
 
         switch scaleMode {
         case .fill:
@@ -565,7 +565,7 @@ open class SNScene: SNEffectNode {
             scaleY = 1
         }
 
-        return Point(
+        return CGPoint(
             x: viewPoint.x * scaleX + viewSize.width / 2,
             y: viewPoint.y * scaleY + viewSize.height / 2
         )

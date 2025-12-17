@@ -12,12 +12,12 @@ public enum TileRotation: Int, Sendable {
     case rotation270 = 3
 
     /// The rotation angle in radians.
-    public var radians: Float {
-        Float(rawValue) * .pi / 2
+    public var radians: CGFloat {
+        CGFloat(rawValue) * .pi / 2
     }
 
     /// The rotation angle in degrees.
-    public var degrees: Float {
-        Float(rawValue) * 90
+    public var degrees: CGFloat {
+        CGFloat(rawValue) * 90
     }
 }

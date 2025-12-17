@@ -12,7 +12,7 @@
 /// ## Usage
 /// ```swift
 /// // Create a vertex buffer
-/// let vertices: [Float] = [0, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0]
+/// let vertices: [CGFloat] = [0, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0]
 /// let buffer = device.makeBuffer(floats: vertices, usage: .vertex)
 ///
 /// // Use in render pass

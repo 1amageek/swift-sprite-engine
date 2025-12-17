@@ -31,7 +31,7 @@ public struct Region: Sendable {
     private indirect enum Shape: Sendable {
         case infinite
         case rect(Size)
-        case circle(Float)
+        case circle(CGFloat)
         case path(ShapePath)
         case combined(Region, Region, Operation)
         case inverted(Region)
@@ -52,10 +52,10 @@ public struct Region: Sendable {
     /// For circular regions, returns the diameter.
     /// For rectangular regions, returns the width.
     /// For other regions, returns 0.
-    public var size: Float {
+    public var size: CGFloat {
         switch shape {
         case .infinite:
-            return Float.infinity
+            return CGFloat.infinity
         case .rect(let s):
             return max(s.width, s.height)
         case .circle(let radius):
@@ -114,7 +114,7 @@ public struct Region: Sendable {
     /// Creates a circular region centered at the origin.
     ///
     /// - Parameter radius: The radius of the circle.
-    public init(radius: Float) {
+    public init(radius: CGFloat) {
         self.shape = .circle(radius)
     }
 

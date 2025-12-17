@@ -24,8 +24,8 @@ public final class SNConstraint: @unchecked Sendable {
         case position(Rect)
         case distance(Range, to: () -> SNNode?)
         case rotation(Range)
-        case orientToNode(() -> SNNode?, offset: Float)
-        case orientToPoint(Point, offset: Float)
+        case orientToNode(() -> SNNode?, offset: CGFloat)
+        case orientToPoint(Point, offset: CGFloat)
     }
 
     // MARK: - Properties
@@ -109,7 +109,7 @@ public final class SNConstraint: @unchecked Sendable {
     ///   - node: The target node to face.
     ///   - offset: An angular offset in radians.
     /// - Returns: A constraint.
-    public static func orient(to node: SNNode, offset: Float = 0) -> SNConstraint {
+    public static func orient(to node: SNNode, offset: CGFloat = 0) -> SNConstraint {
         SNConstraint(type: .orientToNode({ [weak node] in node }, offset: offset))
     }
 
@@ -119,7 +119,7 @@ public final class SNConstraint: @unchecked Sendable {
     ///   - point: The target point to face.
     ///   - offset: An angular offset in radians.
     /// - Returns: A constraint.
-    public static func orient(to point: Point, offset: Float = 0) -> SNConstraint {
+    public static func orient(to point: Point, offset: CGFloat = 0) -> SNConstraint {
         SNConstraint(type: .orientToPoint(point, offset: offset))
     }
 

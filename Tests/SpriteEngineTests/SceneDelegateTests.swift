@@ -11,7 +11,7 @@ struct SceneDelegateTests {
         var didFinishUpdateCalled = false
         var callOrder: [String] = []
 
-        func update(_ dt: Float, for scene: SNScene) {
+        func update(_ dt: CGFloat, for scene: SNScene) {
             updateCalled = true
             callOrder.append("update")
         }
@@ -87,7 +87,7 @@ struct SceneDelegateTests {
         final class TestScene: SNScene {
             var updateCalled = false
 
-            override func update(dt: Float) {
+            override func update(dt: CGFloat) {
                 updateCalled = true
                 super.update(dt: dt)
             }

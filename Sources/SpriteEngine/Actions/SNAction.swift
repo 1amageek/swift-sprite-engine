@@ -29,7 +29,7 @@ public class Action {
     // MARK: - Properties
 
     /// The duration of this action in seconds.
-    public let duration: Float
+    public let duration: CGFloat
 
     /// The timing function for this action.
     public var timingMode: SNActionTimingMode = .linear
@@ -48,14 +48,14 @@ public class Action {
     ///     return t * t * (3 - 2 * t)
     /// }
     /// ```
-    public var timingFunction: ((Float) -> Float)?
+    public var timingFunction: ((CGFloat) -> CGFloat)?
 
     /// A speed factor that modifies how fast the action runs.
     /// Default is 1.0 (normal speed). Values > 1.0 speed up, values < 1.0 slow down.
-    public var speed: Float = 1.0
+    public var speed: CGFloat = 1.0
 
     /// Current elapsed time.
-    internal var elapsed: Float = 0
+    internal var elapsed: CGFloat = 0
 
     /// Whether this action has completed.
     internal var isComplete: Bool = false
@@ -63,7 +63,7 @@ public class Action {
     // MARK: - Initialization
 
     /// Creates an action with the specified duration.
-    public init(duration: Float) {
+    public init(duration: CGFloat) {
         self.duration = duration
     }
 
@@ -75,14 +75,14 @@ public class Action {
     ///   - node: The node this action is running on.
     ///   - dt: The delta time for this frame.
     /// - Returns: `true` if the action has completed, `false` otherwise.
-    internal func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         // Apply speed factor
         elapsed += dt * speed
 
         if duration > 0 {
             let progress = min(elapsed / duration, 1.0)
             // Use custom timing function if provided, otherwise use timing mode
-            let easedProgress: Float
+            let easedProgress: CGFloat
             if let customTiming = timingFunction {
                 easedProgress = customTiming(progress)
             } else {
@@ -111,7 +111,7 @@ public class Action {
     /// - Parameters:
     ///   - node: The node to apply the action to.
     ///   - progress: The progress from 0 to 1.
-    internal func apply(to node: SNNode, progress: Float) {
+    internal func apply(to node: SNNode, progress: CGFloat) {
         // Override in subclasses
     }
 
@@ -148,7 +148,7 @@ public enum SNActionTimingMode: Sendable {
     case easeInOut
 
     /// Applies the timing function to a progress value.
-    internal func apply(_ t: Float) -> Float {
+    internal func apply(_ t: CGFloat) -> CGFloat {
         switch self {
         case .linear:
             return t
@@ -169,12 +169,12 @@ public final class MoveToAction: Action {
     private let targetPosition: Point
     private var startPosition: Point?
 
-    public init(to position: Point, duration: Float) {
+    public init(to position: Point, duration: CGFloat) {
         self.targetPosition = position
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startPosition == nil {
             startPosition = node.position
         }
@@ -203,12 +203,12 @@ public final class MoveByAction: Action {
     private let delta: Vector2
     private var startPosition: Point?
 
-    public init(by delta: Vector2, duration: Float) {
+    public init(by delta: Vector2, duration: CGFloat) {
         self.delta = delta
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startPosition == nil {
             startPosition = node.position
         }
@@ -236,15 +236,15 @@ public final class MoveByAction: Action {
 
 /// Action that rotates a node to an angle.
 public final class RotateToAction: Action {
-    private let targetRotation: Float
-    private var startRotation: Float?
+    private let targetRotation: CGFloat
+    private var startRotation: CGFloat?
 
-    public init(to rotation: Float, duration: Float) {
+    public init(to rotation: CGFloat, duration: CGFloat) {
         self.targetRotation = rotation
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startRotation == nil {
             startRotation = node.rotation
         }
@@ -267,15 +267,15 @@ public final class RotateToAction: Action {
 
 /// Action that rotates a node by a delta.
 public final class RotateByAction: Action {
-    private let delta: Float
-    private var startRotation: Float?
+    private let delta: CGFloat
+    private var startRotation: CGFloat?
 
-    public init(by delta: Float, duration: Float) {
+    public init(by delta: CGFloat, duration: CGFloat) {
         self.delta = delta
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startRotation == nil {
             startRotation = node.rotation
         }
@@ -303,17 +303,17 @@ public final class ScaleToAction: Action {
     private let targetScale: Size
     private var startScale: Size?
 
-    public init(to scale: Size, duration: Float) {
+    public init(to scale: Size, duration: CGFloat) {
         self.targetScale = scale
         super.init(duration: duration)
     }
 
-    public init(to scale: Float, duration: Float) {
+    public init(to scale: CGFloat, duration: CGFloat) {
         self.targetScale = Size(width: scale, height: scale)
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScale == nil {
             startScale = node.scale
         }
@@ -342,17 +342,17 @@ public final class ScaleByAction: Action {
     private let factor: Size
     private var startScale: Size?
 
-    public init(by factor: Size, duration: Float) {
+    public init(by factor: Size, duration: CGFloat) {
         self.factor = factor
         super.init(duration: duration)
     }
 
-    public init(by factor: Float, duration: Float) {
+    public init(by factor: CGFloat, duration: CGFloat) {
         self.factor = Size(width: factor, height: factor)
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScale == nil {
             startScale = node.scale
         }
@@ -380,15 +380,15 @@ public final class ScaleByAction: Action {
 
 /// Action that fades a node to an alpha value.
 public final class FadeToAction: Action {
-    private let targetAlpha: Float
-    private var startAlpha: Float?
+    private let targetAlpha: CGFloat
+    private var startAlpha: CGFloat?
 
-    public init(to alpha: Float, duration: Float) {
+    public init(to alpha: CGFloat, duration: CGFloat) {
         self.targetAlpha = alpha
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startAlpha == nil {
             startAlpha = node.alpha
         }
@@ -422,7 +422,7 @@ public final class SequenceAction: Action {
         super.init(duration: totalDuration)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         guard currentIndex < actions.count else {
             isComplete = true
             return true
@@ -466,7 +466,7 @@ public final class GroupAction: Action {
         super.init(duration: maxDuration)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         var allComplete = true
 
         for action in actions {
@@ -513,21 +513,21 @@ public final class RepeatAction: Action {
         self.action = action.copy()
         self.count = count
         self.forever = false
-        super.init(duration: action.duration * Float(count))
+        super.init(duration: action.duration * CGFloat(count))
     }
 
     private init(_ action: Action, forever: Bool) {
         self.action = action.copy()
         self.count = 0
         self.forever = true
-        super.init(duration: Float.infinity)
+        super.init(duration: CGFloat.infinity)
     }
 
     public static func forever(_ action: Action) -> RepeatAction {
         RepeatAction(action, forever: true)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         if action.evaluate(on: node, dt: dt) {
             currentCount += 1
             if !forever && currentCount >= count {
@@ -558,7 +558,7 @@ public final class RepeatAction: Action {
 
 /// Action that waits for a duration.
 public final class WaitAction: Action {
-    public override init(duration: Float) {
+    public override init(duration: CGFloat) {
         super.init(duration: duration)
     }
 
@@ -579,7 +579,7 @@ public final class RunBlockAction: Action {
         super.init(duration: 0)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         if !hasRun {
             block()
             hasRun = true
@@ -606,7 +606,7 @@ public final class RemoveFromParentAction: Action {
         super.init(duration: 0)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         node.removeFromParent()
         isComplete = true
         return true
@@ -625,7 +625,7 @@ public final class HideAction: Action {
         super.init(duration: 0)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         node.isHidden = true
         isComplete = true
         return true
@@ -642,7 +642,7 @@ public final class UnhideAction: Action {
         super.init(duration: 0)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         node.isHidden = false
         isComplete = true
         return true
@@ -658,7 +658,7 @@ public final class UnhideAction: Action {
 /// Action that animates a sprite through a sequence of textures.
 public final class AnimateWithTexturesAction: Action {
     private let textures: [SNTexture]
-    private let timePerFrame: Float
+    private let timePerFrame: CGFloat
     private let resize: Bool
     private let restore: Bool
     private var originalTexture: SNTexture?
@@ -671,29 +671,29 @@ public final class AnimateWithTexturesAction: Action {
     ///   - timePerFrame: The duration to display each texture.
     ///   - resize: Whether to resize the sprite to match each texture. Default is true.
     ///   - restore: Whether to restore the original texture after animation. Default is true.
-    public init(textures: [SNTexture], timePerFrame: Float, resize: Bool = true, restore: Bool = true) {
+    public init(textures: [SNTexture], timePerFrame: CGFloat, resize: Bool = true, restore: Bool = true) {
         self.textures = textures
         self.timePerFrame = timePerFrame
         self.resize = resize
         self.restore = restore
-        super.init(duration: Float(textures.count) * timePerFrame)
+        super.init(duration: CGFloat(textures.count) * timePerFrame)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode, !textures.isEmpty else { return }
 
         if originalTexture == nil {
             originalTexture = sprite.texture
         }
 
-        let frameIndex = min(Int(progress * Float(textures.count)), textures.count - 1)
+        let frameIndex = min(Int(progress * CGFloat(textures.count)), textures.count - 1)
         if frameIndex != currentFrameIndex || progress == 0 {
             currentFrameIndex = frameIndex
             sprite.texture = textures[frameIndex]
         }
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         let result = super.evaluate(on: node, dt: dt)
         if result && restore, let sprite = node as? SNSpriteNode {
             sprite.texture = originalTexture
@@ -730,7 +730,7 @@ public final class SetTextureAction: Action {
         super.init(duration: 0)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         if let sprite = node as? SNSpriteNode {
             sprite.texture = texture
             if resize {
@@ -751,9 +751,9 @@ public final class SetTextureAction: Action {
 /// Action that animates a sprite's color and color blend factor.
 public final class ColorizeAction: Action {
     private let targetColor: Color
-    private let targetBlendFactor: Float
+    private let targetBlendFactor: CGFloat
     private var startColor: Color?
-    private var startBlendFactor: Float?
+    private var startBlendFactor: CGFloat?
 
     /// Creates an action that colorizes a sprite.
     ///
@@ -761,7 +761,7 @@ public final class ColorizeAction: Action {
     ///   - color: The target color.
     ///   - colorBlendFactor: The target blend factor (0-1).
     ///   - duration: The animation duration.
-    public init(color: Color, colorBlendFactor: Float, duration: Float) {
+    public init(color: Color, colorBlendFactor: CGFloat, duration: CGFloat) {
         self.targetColor = color
         self.targetBlendFactor = colorBlendFactor
         super.init(duration: duration)
@@ -772,13 +772,13 @@ public final class ColorizeAction: Action {
     /// - Parameters:
     ///   - colorBlendFactor: The target blend factor (0-1).
     ///   - duration: The animation duration.
-    public init(colorBlendFactor: Float, duration: Float) {
+    public init(colorBlendFactor: CGFloat, duration: CGFloat) {
         self.targetColor = .white
         self.targetBlendFactor = colorBlendFactor
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode else { return }
 
         if startColor == nil {
@@ -809,19 +809,19 @@ public final class ColorizeAction: Action {
 
 /// Action that executes a custom block each frame with progress.
 public final class CustomAction: Action {
-    private let actionBlock: (SNNode, Float) -> Void
+    private let actionBlock: (SNNode, CGFloat) -> Void
 
     /// Creates a custom action.
     ///
     /// - Parameters:
     ///   - duration: The action duration.
     ///   - actionBlock: A closure called each frame with the node and elapsed time.
-    public init(duration: Float, actionBlock: @escaping (SNNode, Float) -> Void) {
+    public init(duration: CGFloat, actionBlock: @escaping (SNNode, CGFloat) -> Void) {
         self.actionBlock = actionBlock
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         let elapsedTime = progress * duration
         actionBlock(node, elapsedTime)
     }
@@ -837,15 +837,15 @@ public final class CustomAction: Action {
 
 /// Action that moves a node to a specific X position.
 public final class MoveToXAction: Action {
-    private let targetX: Float
-    private var startX: Float?
+    private let targetX: CGFloat
+    private var startX: CGFloat?
 
-    public init(x: Float, duration: Float) {
+    public init(x: CGFloat, duration: CGFloat) {
         self.targetX = x
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startX == nil {
             startX = node.position.x
         }
@@ -871,15 +871,15 @@ public final class MoveToXAction: Action {
 
 /// Action that moves a node to a specific Y position.
 public final class MoveToYAction: Action {
-    private let targetY: Float
-    private var startY: Float?
+    private let targetY: CGFloat
+    private var startY: CGFloat?
 
-    public init(y: Float, duration: Float) {
+    public init(y: CGFloat, duration: CGFloat) {
         self.targetY = y
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startY == nil {
             startY = node.position.y
         }
@@ -907,15 +907,15 @@ public final class MoveToYAction: Action {
 
 /// Action that scales a node's X axis to a specific value.
 public final class ScaleXToAction: Action {
-    private let targetScaleX: Float
-    private var startScaleX: Float?
+    private let targetScaleX: CGFloat
+    private var startScaleX: CGFloat?
 
-    public init(x: Float, duration: Float) {
+    public init(x: CGFloat, duration: CGFloat) {
         self.targetScaleX = x
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScaleX == nil {
             startScaleX = node.scale.width
         }
@@ -941,15 +941,15 @@ public final class ScaleXToAction: Action {
 
 /// Action that scales a node's Y axis to a specific value.
 public final class ScaleYToAction: Action {
-    private let targetScaleY: Float
-    private var startScaleY: Float?
+    private let targetScaleY: CGFloat
+    private var startScaleY: CGFloat?
 
-    public init(y: Float, duration: Float) {
+    public init(y: CGFloat, duration: CGFloat) {
         self.targetScaleY = y
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScaleY == nil {
             startScaleY = node.scale.height
         }
@@ -975,15 +975,15 @@ public final class ScaleYToAction: Action {
 
 /// Action that scales a node's X axis by a factor.
 public final class ScaleXByAction: Action {
-    private let factor: Float
-    private var startScaleX: Float?
+    private let factor: CGFloat
+    private var startScaleX: CGFloat?
 
-    public init(x: Float, duration: Float) {
+    public init(x: CGFloat, duration: CGFloat) {
         self.factor = x
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScaleX == nil {
             startScaleX = node.scale.width
         }
@@ -1009,15 +1009,15 @@ public final class ScaleXByAction: Action {
 
 /// Action that scales a node's Y axis by a factor.
 public final class ScaleYByAction: Action {
-    private let factor: Float
-    private var startScaleY: Float?
+    private let factor: CGFloat
+    private var startScaleY: CGFloat?
 
-    public init(y: Float, duration: Float) {
+    public init(y: CGFloat, duration: CGFloat) {
         self.factor = y
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScaleY == nil {
             startScaleY = node.scale.height
         }
@@ -1045,18 +1045,18 @@ public final class ScaleYByAction: Action {
 
 /// Action that scales a node's X and Y axes to specific values.
 public final class ScaleXYToAction: Action {
-    private let targetX: Float
-    private let targetY: Float
-    private var startScaleX: Float?
-    private var startScaleY: Float?
+    private let targetX: CGFloat
+    private let targetY: CGFloat
+    private var startScaleX: CGFloat?
+    private var startScaleY: CGFloat?
 
-    public init(x: Float, y: Float, duration: Float) {
+    public init(x: CGFloat, y: CGFloat, duration: CGFloat) {
         self.targetX = x
         self.targetY = y
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScaleX == nil {
             startScaleX = node.scale.width
             startScaleY = node.scale.height
@@ -1084,18 +1084,18 @@ public final class ScaleXYToAction: Action {
 
 /// Action that scales a node's X and Y axes by factors.
 public final class ScaleXYByAction: Action {
-    private let factorX: Float
-    private let factorY: Float
-    private var startScaleX: Float?
-    private var startScaleY: Float?
+    private let factorX: CGFloat
+    private let factorY: CGFloat
+    private var startScaleX: CGFloat?
+    private var startScaleY: CGFloat?
 
-    public init(x: Float, y: Float, duration: Float) {
+    public init(x: CGFloat, y: CGFloat, duration: CGFloat) {
         self.factorX = x
         self.factorY = y
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startScaleX == nil {
             startScaleX = node.scale.width
             startScaleY = node.scale.height
@@ -1125,15 +1125,15 @@ public final class ScaleXYByAction: Action {
 
 /// Action that resizes a sprite's width to a specific value.
 public final class ResizeToWidthAction: Action {
-    private let targetWidth: Float
-    private var startWidth: Float?
+    private let targetWidth: CGFloat
+    private var startWidth: CGFloat?
 
-    public init(width: Float, duration: Float) {
+    public init(width: CGFloat, duration: CGFloat) {
         self.targetWidth = width
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode else { return }
 
         if startWidth == nil {
@@ -1161,15 +1161,15 @@ public final class ResizeToWidthAction: Action {
 
 /// Action that resizes a sprite's height to a specific value.
 public final class ResizeToHeightAction: Action {
-    private let targetHeight: Float
-    private var startHeight: Float?
+    private let targetHeight: CGFloat
+    private var startHeight: CGFloat?
 
-    public init(height: Float, duration: Float) {
+    public init(height: CGFloat, duration: CGFloat) {
         self.targetHeight = height
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode else { return }
 
         if startHeight == nil {
@@ -1199,16 +1199,16 @@ public final class ResizeToHeightAction: Action {
 
 /// Action that rotates a node to an angle using the shortest path.
 public final class RotateToShortestAction: Action {
-    private let targetRotation: Float
-    private var startRotation: Float?
-    private var deltaRotation: Float = 0
+    private let targetRotation: CGFloat
+    private var startRotation: CGFloat?
+    private var deltaRotation: CGFloat = 0
 
-    public init(to rotation: Float, duration: Float) {
+    public init(to rotation: CGFloat, duration: CGFloat) {
         self.targetRotation = rotation
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startRotation == nil {
             startRotation = node.rotation
             // Calculate shortest path
@@ -1247,7 +1247,7 @@ public final class SetNormalTextureAction: Action {
         super.init(duration: 0)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         if let sprite = node as? SNSpriteNode {
             sprite.normalTexture = texture
         }
@@ -1263,19 +1263,19 @@ public final class SetNormalTextureAction: Action {
 /// Action that animates through normal textures.
 public final class AnimateWithNormalTexturesAction: Action {
     private let textures: [SNTexture]
-    private let timePerFrame: Float
+    private let timePerFrame: CGFloat
     private var currentFrameIndex: Int = 0
 
-    public init(textures: [SNTexture], timePerFrame: Float) {
+    public init(textures: [SNTexture], timePerFrame: CGFloat) {
         self.textures = textures
         self.timePerFrame = timePerFrame
-        super.init(duration: Float(textures.count) * timePerFrame)
+        super.init(duration: CGFloat(textures.count) * timePerFrame)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode, !textures.isEmpty else { return }
 
-        let frameIndex = min(Int(progress * Float(textures.count)), textures.count - 1)
+        let frameIndex = min(Int(progress * CGFloat(textures.count)), textures.count - 1)
         if frameIndex != currentFrameIndex || progress == 0 {
             currentFrameIndex = frameIndex
             sprite.normalTexture = textures[frameIndex]
@@ -1301,12 +1301,12 @@ public final class WarpToAction: Action {
     private let targetWarp: SNSNWarpGeometryGrid
     private var startWarp: SNSNWarpGeometryGrid?
 
-    public init(warp: SNSNWarpGeometryGrid, duration: Float) {
+    public init(warp: SNSNWarpGeometryGrid, duration: CGFloat) {
         self.targetWarp = warp
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let warpable = node as? SNWarpable else { return }
 
         if startWarp == nil {
@@ -1343,30 +1343,30 @@ public final class WarpToAction: Action {
 /// Action that animates through a sequence of warp geometries.
 public final class AnimateWithWarpsAction: Action {
     private let warps: [SNSNWarpGeometryGrid]
-    private let times: [Float]?
+    private let times: [CGFloat]?
     private var currentIndex: Int = 0
 
     /// Creates an action that animates through warps with equal timing.
-    public init(warps: [SNSNWarpGeometryGrid], duration: Float) {
+    public init(warps: [SNSNWarpGeometryGrid], duration: CGFloat) {
         self.warps = warps
         self.times = nil
         super.init(duration: duration)
     }
 
     /// Creates an action that animates through warps with specified times.
-    public init(warps: [SNSNWarpGeometryGrid], times: [Float]) {
+    public init(warps: [SNSNWarpGeometryGrid], times: [CGFloat]) {
         self.warps = warps
         self.times = times
         super.init(duration: times.reduce(0, +))
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let warpable = node as? SNWarpable, !warps.isEmpty else { return }
 
         let index: Int
         if let times = times {
             // Find the correct warp based on accumulated times
-            var accumulated: Float = 0
+            var accumulated: CGFloat = 0
             var foundIndex = 0
             for (i, time) in times.enumerated() {
                 accumulated += time / duration
@@ -1379,7 +1379,7 @@ public final class AnimateWithWarpsAction: Action {
             index = min(foundIndex, warps.count - 1)
         } else {
             // Equal timing
-            index = min(Int(progress * Float(warps.count)), warps.count - 1)
+            index = min(Int(progress * CGFloat(warps.count)), warps.count - 1)
         }
 
         if index != currentIndex || progress == 0 {
@@ -1406,15 +1406,15 @@ public final class AnimateWithWarpsAction: Action {
 
 /// Action that changes a node's speed property to a value.
 public final class NodeSpeedToAction: Action {
-    private let targetSpeed: Float
-    private var startSpeed: Float?
+    private let targetSpeed: CGFloat
+    private var startSpeed: CGFloat?
 
-    public init(speed: Float, duration: Float) {
+    public init(speed: CGFloat, duration: CGFloat) {
         self.targetSpeed = speed
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startSpeed == nil {
             startSpeed = node.speed
         }
@@ -1437,15 +1437,15 @@ public final class NodeSpeedToAction: Action {
 
 /// Action that changes a node's speed property by a delta.
 public final class NodeSpeedByAction: Action {
-    private let delta: Float
-    private var startSpeed: Float?
+    private let delta: CGFloat
+    private var startSpeed: CGFloat?
 
-    public init(delta: Float, duration: Float) {
+    public init(delta: CGFloat, duration: CGFloat) {
         self.delta = delta
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startSpeed == nil {
             startSpeed = node.speed
         }
@@ -1471,14 +1471,14 @@ public final class NodeSpeedByAction: Action {
 /// Action that moves a node along a path at a constant speed.
 public final class FollowPathSpeedAction: Action {
     private let path: ShapePath
-    private let pathSpeed: Float
+    private let pathSpeed: CGFloat
     private let asOffset: Bool
     private let orientToPath: Bool
     private var startPosition: Point?
-    private var pathLength: Float = 0
-    private var currentDistance: Float = 0
+    private var pathLength: CGFloat = 0
+    private var currentDistance: CGFloat = 0
 
-    public init(path: ShapePath, speed: Float, asOffset: Bool = false, orientToPath: Bool = false) {
+    public init(path: ShapePath, speed: CGFloat, asOffset: Bool = false, orientToPath: Bool = false) {
         self.path = path
         self.pathSpeed = speed
         self.asOffset = asOffset
@@ -1489,7 +1489,7 @@ public final class FollowPathSpeedAction: Action {
         self.pathLength = estimatedLength
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startPosition == nil {
             startPosition = node.position
         }
@@ -1527,15 +1527,15 @@ public final class FollowPathSpeedAction: Action {
 
 /// Action that fades a node by a relative alpha amount.
 public final class FadeByAction: Action {
-    private let delta: Float
-    private var startAlpha: Float?
+    private let delta: CGFloat
+    private var startAlpha: CGFloat?
 
-    public init(by delta: Float, duration: Float) {
+    public init(by delta: CGFloat, duration: CGFloat) {
         self.delta = delta
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startAlpha == nil {
             startAlpha = node.alpha
         }
@@ -1561,20 +1561,20 @@ public final class FadeByAction: Action {
 /// Action that modifies the speed of another action.
 public final class SpeedAction: Action {
     private let wrappedAction: Action
-    private let speedMultiplier: Float
+    private let speedMultiplier: CGFloat
 
     /// Creates an action that runs another action at a different speed.
     ///
     /// - Parameters:
     ///   - action: The action to wrap.
     ///   - speed: The speed multiplier (2.0 = twice as fast, 0.5 = half speed).
-    public init(action: Action, speed: Float) {
+    public init(action: Action, speed: CGFloat) {
         self.wrappedAction = action.copy()
         self.speedMultiplier = speed
         super.init(duration: action.duration / speed)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         let adjustedDt = dt * speedMultiplier
         let result = wrappedAction.evaluate(on: node, dt: adjustedDt)
         if result {
@@ -1608,7 +1608,7 @@ public final class ReversedAction: Action {
         super.init(duration: action.duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         // Run the original action with inverted progress
         originalAction.apply(to: node, progress: 1.0 - progress)
     }
@@ -1642,14 +1642,14 @@ public final class FollowPathAction: Action {
     ///   - asOffset: If true, path coordinates are relative to node position.
     ///   - orientToPath: If true, node rotates to face path direction.
     ///   - duration: The duration to traverse the path.
-    public init(path: ShapePath, asOffset: Bool = false, orientToPath: Bool = false, duration: Float) {
+    public init(path: ShapePath, asOffset: Bool = false, orientToPath: Bool = false, duration: CGFloat) {
         self.path = path
         self.asOffset = asOffset
         self.orientToPath = orientToPath
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         if startPosition == nil {
             startPosition = node.position
         }
@@ -1693,17 +1693,17 @@ public final class ResizeToAction: Action {
     private let targetSize: Size
     private var startSize: Size?
 
-    public init(to size: Size, duration: Float) {
+    public init(to size: Size, duration: CGFloat) {
         self.targetSize = size
         super.init(duration: duration)
     }
 
-    public init(width: Float, height: Float, duration: Float) {
+    public init(width: CGFloat, height: CGFloat, duration: CGFloat) {
         self.targetSize = Size(width: width, height: height)
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode else { return }
 
         if startSize == nil {
@@ -1734,17 +1734,17 @@ public final class ResizeByAction: Action {
     private let delta: Size
     private var startSize: Size?
 
-    public init(by delta: Size, duration: Float) {
+    public init(by delta: Size, duration: CGFloat) {
         self.delta = delta
         super.init(duration: duration)
     }
 
-    public init(width: Float, height: Float, duration: Float) {
+    public init(width: CGFloat, height: CGFloat, duration: CGFloat) {
         self.delta = Size(width: width, height: height)
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let sprite = node as? SNSpriteNode else { return }
 
         if startSize == nil {
@@ -1776,58 +1776,58 @@ extension Action {
     // MARK: Move
 
     /// Creates an action that moves a node to a position.
-    public static func move(to position: Point, duration: Float) -> Action {
+    public static func move(to position: Point, duration: CGFloat) -> Action {
         MoveToAction(to: position, duration: duration)
     }
 
     /// Creates an action that moves a node by a delta.
-    public static func move(by delta: Vector2, duration: Float) -> Action {
+    public static func move(by delta: Vector2, duration: CGFloat) -> Action {
         MoveByAction(by: delta, duration: duration)
     }
 
     /// Creates an action that moves a node horizontally.
-    public static func moveBy(x: Float, y: Float, duration: Float) -> Action {
+    public static func moveBy(x: CGFloat, y: CGFloat, duration: CGFloat) -> Action {
         MoveByAction(by: Vector2(dx: x, dy: y), duration: duration)
     }
 
     // MARK: Rotate
 
     /// Creates an action that rotates a node to an angle.
-    public static func rotate(to angle: Float, duration: Float) -> Action {
+    public static func rotate(to angle: CGFloat, duration: CGFloat) -> Action {
         RotateToAction(to: angle, duration: duration)
     }
 
     /// Creates an action that rotates a node by a delta.
-    public static func rotate(by angle: Float, duration: Float) -> Action {
+    public static func rotate(by angle: CGFloat, duration: CGFloat) -> Action {
         RotateByAction(by: angle, duration: duration)
     }
 
     // MARK: Scale
 
     /// Creates an action that scales a node to a size.
-    public static func scale(to scale: Float, duration: Float) -> Action {
+    public static func scale(to scale: CGFloat, duration: CGFloat) -> Action {
         ScaleToAction(to: scale, duration: duration)
     }
 
     /// Creates an action that scales a node by a factor.
-    public static func scale(by factor: Float, duration: Float) -> Action {
+    public static func scale(by factor: CGFloat, duration: CGFloat) -> Action {
         ScaleByAction(by: factor, duration: duration)
     }
 
     // MARK: Fade
 
     /// Creates an action that fades a node to an alpha value.
-    public static func fade(to alpha: Float, duration: Float) -> Action {
+    public static func fade(to alpha: CGFloat, duration: CGFloat) -> Action {
         FadeToAction(to: alpha, duration: duration)
     }
 
     /// Creates an action that fades a node in.
-    public static func fadeIn(duration: Float) -> Action {
+    public static func fadeIn(duration: CGFloat) -> Action {
         FadeToAction(to: 1.0, duration: duration)
     }
 
     /// Creates an action that fades a node out.
-    public static func fadeOut(duration: Float) -> Action {
+    public static func fadeOut(duration: CGFloat) -> Action {
         FadeToAction(to: 0.0, duration: duration)
     }
 
@@ -1856,7 +1856,7 @@ extension Action {
     // MARK: Utility
 
     /// Creates an action that waits for a duration.
-    public static func wait(duration: Float) -> Action {
+    public static func wait(duration: CGFloat) -> Action {
         WaitAction(duration: duration)
     }
 
@@ -1888,7 +1888,7 @@ extension Action {
     ///   - textures: The textures to animate through.
     ///   - timePerFrame: The duration to display each texture.
     /// - Returns: An action that cycles through the textures.
-    public static func animate(with textures: [SNTexture], timePerFrame: Float) -> Action {
+    public static func animate(with textures: [SNTexture], timePerFrame: CGFloat) -> Action {
         AnimateWithTexturesAction(textures: textures, timePerFrame: timePerFrame)
     }
 
@@ -1900,7 +1900,7 @@ extension Action {
     ///   - resize: Whether to resize the sprite.
     ///   - restore: Whether to restore the original texture.
     /// - Returns: An action that cycles through the textures.
-    public static func animate(with textures: [SNTexture], timePerFrame: Float, resize: Bool, restore: Bool) -> Action {
+    public static func animate(with textures: [SNTexture], timePerFrame: CGFloat, resize: Bool, restore: Bool) -> Action {
         AnimateWithTexturesAction(textures: textures, timePerFrame: timePerFrame, resize: resize, restore: restore)
     }
 
@@ -1931,7 +1931,7 @@ extension Action {
     ///   - colorBlendFactor: The target blend factor (0-1).
     ///   - duration: The animation duration.
     /// - Returns: An action that animates the color.
-    public static func colorize(with color: Color, colorBlendFactor: Float, duration: Float) -> Action {
+    public static func colorize(with color: Color, colorBlendFactor: CGFloat, duration: CGFloat) -> Action {
         ColorizeAction(color: color, colorBlendFactor: colorBlendFactor, duration: duration)
     }
 
@@ -1941,7 +1941,7 @@ extension Action {
     ///   - colorBlendFactor: The target blend factor (0-1).
     ///   - duration: The animation duration.
     /// - Returns: An action that animates the blend factor.
-    public static func colorize(withColorBlendFactor colorBlendFactor: Float, duration: Float) -> Action {
+    public static func colorize(withColorBlendFactor colorBlendFactor: CGFloat, duration: CGFloat) -> Action {
         ColorizeAction(colorBlendFactor: colorBlendFactor, duration: duration)
     }
 
@@ -1953,7 +1953,7 @@ extension Action {
     ///   - duration: The action duration.
     ///   - actionBlock: A closure called each frame with the node and elapsed time.
     /// - Returns: A custom action.
-    public static func customAction(withDuration duration: Float, actionBlock: @escaping (SNNode, Float) -> Void) -> Action {
+    public static func customAction(withDuration duration: CGFloat, actionBlock: @escaping (SNNode, CGFloat) -> Void) -> Action {
         CustomAction(duration: duration, actionBlock: actionBlock)
     }
 
@@ -1965,7 +1965,7 @@ extension Action {
     ///   - x: The target X position.
     ///   - duration: The animation duration.
     /// - Returns: An action that moves to the X position.
-    public static func moveTo(x: Float, duration: Float) -> Action {
+    public static func moveTo(x: CGFloat, duration: CGFloat) -> Action {
         MoveToXAction(x: x, duration: duration)
     }
 
@@ -1975,7 +1975,7 @@ extension Action {
     ///   - y: The target Y position.
     ///   - duration: The animation duration.
     /// - Returns: An action that moves to the Y position.
-    public static func moveTo(y: Float, duration: Float) -> Action {
+    public static func moveTo(y: CGFloat, duration: CGFloat) -> Action {
         MoveToYAction(y: y, duration: duration)
     }
 
@@ -1987,7 +1987,7 @@ extension Action {
     ///   - x: The target X scale.
     ///   - duration: The animation duration.
     /// - Returns: An action that scales the X axis.
-    public static func scaleX(to x: Float, duration: Float) -> Action {
+    public static func scaleX(to x: CGFloat, duration: CGFloat) -> Action {
         ScaleXToAction(x: x, duration: duration)
     }
 
@@ -1997,7 +1997,7 @@ extension Action {
     ///   - y: The target Y scale.
     ///   - duration: The animation duration.
     /// - Returns: An action that scales the Y axis.
-    public static func scaleY(to y: Float, duration: Float) -> Action {
+    public static func scaleY(to y: CGFloat, duration: CGFloat) -> Action {
         ScaleYToAction(y: y, duration: duration)
     }
 
@@ -2007,7 +2007,7 @@ extension Action {
     ///   - x: The scale factor.
     ///   - duration: The animation duration.
     /// - Returns: An action that scales the X axis by a factor.
-    public static func scaleX(by x: Float, duration: Float) -> Action {
+    public static func scaleX(by x: CGFloat, duration: CGFloat) -> Action {
         ScaleXByAction(x: x, duration: duration)
     }
 
@@ -2017,7 +2017,7 @@ extension Action {
     ///   - y: The scale factor.
     ///   - duration: The animation duration.
     /// - Returns: An action that scales the Y axis by a factor.
-    public static func scaleY(by y: Float, duration: Float) -> Action {
+    public static func scaleY(by y: CGFloat, duration: CGFloat) -> Action {
         ScaleYByAction(y: y, duration: duration)
     }
 
@@ -2029,7 +2029,7 @@ extension Action {
     ///   - delta: The alpha change (-1 to 1).
     ///   - duration: The animation duration.
     /// - Returns: An action that changes alpha by the delta.
-    public static func fade(by delta: Float, duration: Float) -> Action {
+    public static func fade(by delta: CGFloat, duration: CGFloat) -> Action {
         FadeByAction(by: delta, duration: duration)
     }
 
@@ -2041,7 +2041,7 @@ extension Action {
     ///   - action: The action to run.
     ///   - speed: The speed multiplier.
     /// - Returns: An action that runs at the specified speed.
-    public static func speed(_ action: Action, by speed: Float) -> Action {
+    public static func speed(_ action: Action, by speed: CGFloat) -> Action {
         SpeedAction(action: action, speed: speed)
     }
 
@@ -2063,7 +2063,7 @@ extension Action {
     ///   - path: The path to follow.
     ///   - duration: The duration to traverse the path.
     /// - Returns: An action that follows the path.
-    public static func follow(_ path: ShapePath, duration: Float) -> Action {
+    public static func follow(_ path: ShapePath, duration: CGFloat) -> Action {
         FollowPathAction(path: path, duration: duration)
     }
 
@@ -2075,7 +2075,7 @@ extension Action {
     ///   - orientToPath: Whether to rotate toward path direction.
     ///   - duration: The duration to traverse the path.
     /// - Returns: An action that follows the path.
-    public static func follow(_ path: ShapePath, asOffset: Bool, orientToPath: Bool, duration: Float) -> Action {
+    public static func follow(_ path: ShapePath, asOffset: Bool, orientToPath: Bool, duration: CGFloat) -> Action {
         FollowPathAction(path: path, asOffset: asOffset, orientToPath: orientToPath, duration: duration)
     }
 
@@ -2088,7 +2088,7 @@ extension Action {
     ///   - height: The target height.
     ///   - duration: The animation duration.
     /// - Returns: An action that resizes the sprite.
-    public static func resize(toWidth width: Float, height: Float, duration: Float) -> Action {
+    public static func resize(toWidth width: CGFloat, height: CGFloat, duration: CGFloat) -> Action {
         ResizeToAction(width: width, height: height, duration: duration)
     }
 
@@ -2099,7 +2099,7 @@ extension Action {
     ///   - height: The height change.
     ///   - duration: The animation duration.
     /// - Returns: An action that resizes by the delta.
-    public static func resize(byWidth width: Float, height: Float, duration: Float) -> Action {
+    public static func resize(byWidth width: CGFloat, height: CGFloat, duration: CGFloat) -> Action {
         ResizeByAction(width: width, height: height, duration: duration)
     }
 
@@ -2109,7 +2109,7 @@ extension Action {
     ///   - width: The target width.
     ///   - duration: The animation duration.
     /// - Returns: An action that resizes the width.
-    public static func resize(toWidth width: Float, duration: Float) -> Action {
+    public static func resize(toWidth width: CGFloat, duration: CGFloat) -> Action {
         ResizeToWidthAction(width: width, duration: duration)
     }
 
@@ -2119,7 +2119,7 @@ extension Action {
     ///   - height: The target height.
     ///   - duration: The animation duration.
     /// - Returns: An action that resizes the height.
-    public static func resize(toHeight height: Float, duration: Float) -> Action {
+    public static func resize(toHeight height: CGFloat, duration: CGFloat) -> Action {
         ResizeToHeightAction(height: height, duration: duration)
     }
 
@@ -2132,7 +2132,7 @@ extension Action {
     ///   - y: The target Y scale.
     ///   - duration: The animation duration.
     /// - Returns: An action that scales both axes.
-    public static func scaleX(to x: Float, y: Float, duration: Float) -> Action {
+    public static func scaleX(to x: CGFloat, y: CGFloat, duration: CGFloat) -> Action {
         ScaleXYToAction(x: x, y: y, duration: duration)
     }
 
@@ -2143,7 +2143,7 @@ extension Action {
     ///   - y: The Y scale factor.
     ///   - duration: The animation duration.
     /// - Returns: An action that scales both axes by factors.
-    public static func scaleX(by x: Float, y: Float, duration: Float) -> Action {
+    public static func scaleX(by x: CGFloat, y: CGFloat, duration: CGFloat) -> Action {
         ScaleXYByAction(x: x, y: y, duration: duration)
     }
 
@@ -2156,7 +2156,7 @@ extension Action {
     ///   - shortestUnitArc: If true, rotates via shortest path.
     ///   - duration: The animation duration.
     /// - Returns: An action that rotates using shortest arc.
-    public static func rotate(to angle: Float, shortestUnitArc: Bool, duration: Float) -> Action {
+    public static func rotate(to angle: CGFloat, shortestUnitArc: Bool, duration: CGFloat) -> Action {
         if shortestUnitArc {
             return RotateToShortestAction(to: angle, duration: duration)
         } else {
@@ -2180,7 +2180,7 @@ extension Action {
     ///   - textures: The normal textures to animate through.
     ///   - timePerFrame: The duration to display each texture.
     /// - Returns: An action that cycles through the normal textures.
-    public static func animate(withNormalTextures textures: [SNTexture], timePerFrame: Float) -> Action {
+    public static func animate(withNormalTextures textures: [SNTexture], timePerFrame: CGFloat) -> Action {
         AnimateWithNormalTexturesAction(textures: textures, timePerFrame: timePerFrame)
     }
 
@@ -2192,7 +2192,7 @@ extension Action {
     ///   - warp: The target warp geometry.
     ///   - duration: The animation duration.
     /// - Returns: An action that animates the warp.
-    public static func warp(to warp: SNSNWarpGeometryGrid, duration: Float) -> Action {
+    public static func warp(to warp: SNSNWarpGeometryGrid, duration: CGFloat) -> Action {
         WarpToAction(warp: warp, duration: duration)
     }
 
@@ -2202,7 +2202,7 @@ extension Action {
     ///   - warps: The warp geometries to animate through.
     ///   - times: The durations for each warp.
     /// - Returns: An action that cycles through the warps.
-    public static func animate(withWarps warps: [SNSNWarpGeometryGrid], times: [Float]) -> Action {
+    public static func animate(withWarps warps: [SNSNWarpGeometryGrid], times: [CGFloat]) -> Action {
         AnimateWithWarpsAction(warps: warps, times: times)
     }
 
@@ -2212,7 +2212,7 @@ extension Action {
     ///   - warps: The warp geometries to animate through.
     ///   - duration: The total animation duration.
     /// - Returns: An action that cycles through the warps.
-    public static func animate(withWarps warps: [SNSNWarpGeometryGrid], duration: Float) -> Action {
+    public static func animate(withWarps warps: [SNSNWarpGeometryGrid], duration: CGFloat) -> Action {
         AnimateWithWarpsAction(warps: warps, duration: duration)
     }
 
@@ -2224,7 +2224,7 @@ extension Action {
     ///   - speed: The target speed.
     ///   - duration: The animation duration.
     /// - Returns: An action that changes node speed.
-    public static func speed(to speed: Float, duration: Float) -> Action {
+    public static func speed(to speed: CGFloat, duration: CGFloat) -> Action {
         NodeSpeedToAction(speed: speed, duration: duration)
     }
 
@@ -2234,7 +2234,7 @@ extension Action {
     ///   - delta: The speed change.
     ///   - duration: The animation duration.
     /// - Returns: An action that changes node speed.
-    public static func speed(by delta: Float, duration: Float) -> Action {
+    public static func speed(by delta: CGFloat, duration: CGFloat) -> Action {
         NodeSpeedByAction(delta: delta, duration: duration)
     }
 
@@ -2246,7 +2246,7 @@ extension Action {
     ///   - path: The path to follow.
     ///   - speed: The movement speed in points per second.
     /// - Returns: An action that follows the path at constant speed.
-    public static func follow(_ path: ShapePath, speed: Float) -> Action {
+    public static func follow(_ path: ShapePath, speed: CGFloat) -> Action {
         FollowPathSpeedAction(path: path, speed: speed)
     }
 
@@ -2258,7 +2258,7 @@ extension Action {
     ///   - orientToPath: Whether to rotate toward path direction.
     ///   - speed: The movement speed in points per second.
     /// - Returns: An action that follows the path at constant speed.
-    public static func follow(_ path: ShapePath, asOffset: Bool, orientToPath: Bool, speed: Float) -> Action {
+    public static func follow(_ path: ShapePath, asOffset: Bool, orientToPath: Bool, speed: CGFloat) -> Action {
         FollowPathSpeedAction(path: path, speed: speed, asOffset: asOffset, orientToPath: orientToPath)
     }
 
@@ -2270,8 +2270,8 @@ extension Action {
     ///   - duration: The base duration.
     ///   - range: The random range to add (0 to range).
     /// - Returns: An action that waits for a random duration.
-    public static func wait(duration: Float, withRange range: Float) -> Action {
-        let randomValue = Float.random(in: 0...1)
+    public static func wait(duration: CGFloat, withRange range: CGFloat) -> Action {
+        let randomValue = CGFloat.random(in: 0...1)
         let totalDuration = duration + randomValue * range
         return WaitAction(duration: totalDuration)
     }
@@ -2285,7 +2285,7 @@ extension Action {
     ///   - rootNode: The root of the IK chain.
     ///   - duration: The animation duration.
     /// - Returns: An action that performs IK.
-    public static func reach(to point: Point, rootNode: SNNode, duration: Float) -> Action {
+    public static func reach(to point: Point, rootNode: SNNode, duration: CGFloat) -> Action {
         ReachAction(targetPoint: point, rootNode: rootNode, duration: duration)
     }
 
@@ -2296,7 +2296,7 @@ extension Action {
     ///   - rootNode: The root of the IK chain.
     ///   - duration: The animation duration.
     /// - Returns: An action that performs IK.
-    public static func reach(to node: SNNode, rootNode: SNNode, duration: Float) -> Action {
+    public static func reach(to node: SNNode, rootNode: SNNode, duration: CGFloat) -> Action {
         ReachToNodeAction(targetNode: node, rootNode: rootNode, duration: duration)
     }
 
@@ -2308,7 +2308,7 @@ extension Action {
     ///   - force: The force vector.
     ///   - duration: The duration to apply the force.
     /// - Returns: An action that applies force.
-    public static func applyForce(_ force: Vector2, duration: Float) -> Action {
+    public static func applyForce(_ force: Vector2, duration: CGFloat) -> Action {
         ApplyForceAction(force: force, duration: duration)
     }
 
@@ -2318,7 +2318,7 @@ extension Action {
     ///   - impulse: The impulse vector.
     ///   - duration: The duration (typically instantaneous).
     /// - Returns: An action that applies impulse.
-    public static func applyImpulse(_ impulse: Vector2, duration: Float) -> Action {
+    public static func applyImpulse(_ impulse: Vector2, duration: CGFloat) -> Action {
         ApplyImpulseAction(impulse: impulse, duration: duration)
     }
 
@@ -2328,7 +2328,7 @@ extension Action {
     ///   - torque: The torque value.
     ///   - duration: The duration to apply the torque.
     /// - Returns: An action that applies torque.
-    public static func applyTorque(_ torque: Float, duration: Float) -> Action {
+    public static func applyTorque(_ torque: CGFloat, duration: CGFloat) -> Action {
         ApplyTorqueAction(torque: torque, duration: duration)
     }
 
@@ -2338,7 +2338,7 @@ extension Action {
     ///   - impulse: The angular impulse value.
     ///   - duration: The duration (typically instantaneous).
     /// - Returns: An action that applies angular impulse.
-    public static func applyAngularImpulse(_ impulse: Float, duration: Float) -> Action {
+    public static func applyAngularImpulse(_ impulse: CGFloat, duration: CGFloat) -> Action {
         ApplyAngularImpulseAction(impulse: impulse, duration: duration)
     }
 
@@ -2350,7 +2350,7 @@ extension Action {
     ///   - strength: The target strength.
     ///   - duration: The animation duration.
     /// - Returns: An action that changes field strength.
-    public static func strength(to strength: Float, duration: Float) -> Action {
+    public static func strength(to strength: CGFloat, duration: CGFloat) -> Action {
         FieldStrengthAction(strength: strength, duration: duration)
     }
 
@@ -2360,7 +2360,7 @@ extension Action {
     ///   - falloff: The target falloff.
     ///   - duration: The animation duration.
     /// - Returns: An action that changes field falloff.
-    public static func falloff(to falloff: Float, duration: Float) -> Action {
+    public static func falloff(to falloff: CGFloat, duration: CGFloat) -> Action {
         FieldFalloffAction(falloff: falloff, duration: duration)
     }
 }
@@ -2372,18 +2372,18 @@ public final class ReachAction: Action {
     private let targetPoint: Point
     private weak var rootNode: SNNode?
 
-    public init(targetPoint: Point, rootNode: SNNode, duration: Float) {
+    public init(targetPoint: Point, rootNode: SNNode, duration: CGFloat) {
         self.targetPoint = targetPoint
         self.rootNode = rootNode
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let root = rootNode else { return }
         solveIK(endEffector: node, root: root, target: targetPoint, progress: progress)
     }
 
-    private func solveIK(endEffector: SNNode, root: SNNode, target: Point, progress: Float) {
+    private func solveIK(endEffector: SNNode, root: SNNode, target: Point, progress: CGFloat) {
         var chain: [SNNode] = []
         var current: SNNode? = endEffector
         while let node = current, node !== root.parent {
@@ -2419,18 +2419,18 @@ public final class ReachToNodeAction: Action {
     private weak var targetNode: SNNode?
     private weak var rootNode: SNNode?
 
-    public init(targetNode: SNNode, rootNode: SNNode, duration: Float) {
+    public init(targetNode: SNNode, rootNode: SNNode, duration: CGFloat) {
         self.targetNode = targetNode
         self.rootNode = rootNode
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let target = targetNode, let root = rootNode else { return }
         solveIK(endEffector: node, root: root, target: target.worldPosition, progress: progress)
     }
 
-    private func solveIK(endEffector: SNNode, root: SNNode, target: Point, progress: Float) {
+    private func solveIK(endEffector: SNNode, root: SNNode, target: Point, progress: CGFloat) {
         var chain: [SNNode] = []
         var current: SNNode? = endEffector
         while let node = current, node !== root.parent {
@@ -2466,12 +2466,12 @@ public final class ReachToNodeAction: Action {
 public final class ApplyForceAction: Action {
     private let force: Vector2
 
-    public init(force: Vector2, duration: Float) {
+    public init(force: Vector2, duration: CGFloat) {
         self.force = force
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let body = node.physicsBody else { return }
         body.velocity = body.velocity + force * (1.0 / 60.0)
     }
@@ -2486,12 +2486,12 @@ public final class ApplyImpulseAction: Action {
     private let impulse: Vector2
     private var applied = false
 
-    public init(impulse: Vector2, duration: Float) {
+    public init(impulse: Vector2, duration: CGFloat) {
         self.impulse = impulse
         super.init(duration: duration)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         if !applied, let body = node.physicsBody {
             body.velocity = body.velocity + impulse / body.mass
             applied = true
@@ -2507,14 +2507,14 @@ public final class ApplyImpulseAction: Action {
 
 /// Action that applies torque to a physics body.
 public final class ApplyTorqueAction: Action {
-    private let torque: Float
+    private let torque: CGFloat
 
-    public init(torque: Float, duration: Float) {
+    public init(torque: CGFloat, duration: CGFloat) {
         self.torque = torque
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let body = node.physicsBody else { return }
         body.angularVelocity += torque * (1.0 / 60.0)
     }
@@ -2526,15 +2526,15 @@ public final class ApplyTorqueAction: Action {
 
 /// Action that applies angular impulse to a physics body.
 public final class ApplyAngularImpulseAction: Action {
-    private let impulse: Float
+    private let impulse: CGFloat
     private var applied = false
 
-    public init(impulse: Float, duration: Float) {
+    public init(impulse: CGFloat, duration: CGFloat) {
         self.impulse = impulse
         super.init(duration: duration)
     }
 
-    internal override func evaluate(on node: SNNode, dt: Float) -> Bool {
+    internal override func evaluate(on node: SNNode, dt: CGFloat) -> Bool {
         if !applied, let body = node.physicsBody {
             body.angularVelocity += impulse
             applied = true
@@ -2552,15 +2552,15 @@ public final class ApplyAngularImpulseAction: Action {
 
 /// Action that animates a field node's strength.
 public final class FieldStrengthAction: Action {
-    private let targetStrength: Float
-    private var startStrength: Float = 0
+    private let targetStrength: CGFloat
+    private var startStrength: CGFloat = 0
 
-    public init(strength: Float, duration: Float) {
+    public init(strength: CGFloat, duration: CGFloat) {
         self.targetStrength = strength
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let field = node as? SNFieldNode else { return }
         if progress == 0 {
             startStrength = field.strength
@@ -2575,15 +2575,15 @@ public final class FieldStrengthAction: Action {
 
 /// Action that animates a field node's falloff.
 public final class FieldFalloffAction: Action {
-    private let targetFalloff: Float
-    private var startFalloff: Float = 0
+    private let targetFalloff: CGFloat
+    private var startFalloff: CGFloat = 0
 
-    public init(falloff: Float, duration: Float) {
+    public init(falloff: CGFloat, duration: CGFloat) {
         self.targetFalloff = falloff
         super.init(duration: duration)
     }
 
-    internal override func apply(to node: SNNode, progress: Float) {
+    internal override func apply(to node: SNNode, progress: CGFloat) {
         guard let field = node as? SNFieldNode else { return }
         if progress == 0 {
             startFalloff = field.falloff

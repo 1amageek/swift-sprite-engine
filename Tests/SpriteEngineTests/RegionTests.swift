@@ -77,6 +77,6 @@ struct RegionTests {
 
         #expect(region.contains(Point(x: 0, y: 0)))
         #expect(region.contains(Point(x: 10000, y: -10000)))
-        #expect(region.contains(Point(x: Float.greatestFiniteMagnitude, y: 0)))
+        #expect(region.contains(Point(x: CGFloat.greatestFiniteMagnitude, y: 0)))
     }
 }

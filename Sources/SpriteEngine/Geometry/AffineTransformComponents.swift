@@ -5,9 +5,9 @@
 ///
 /// ## Usage
 /// ```swift
-/// let transform = AffineTransform.rotation(.pi / 4)
-///     .scaled(x: 2, y: 2)
-///     .translated(x: 100, y: 50)
+/// let transform = CGAffineTransform(rotationAngle: .pi / 4)
+///     .scaledBy(x: 2, y: 2)
+///     .translatedBy(x: 100, y: 50)
 ///
 /// let components = transform.decomposed()
 /// print(components.rotation)     // Approximately π/4
@@ -16,16 +16,16 @@
 /// ```
 public struct AffineTransformComponents: Hashable, Sendable {
     /// The scale component.
-    public var scale: Size
+    public var scale: CGSize
 
     /// The horizontal shear (skew) component.
-    public var horizontalShear: Float
+    public var horizontalShear: CGFloat
 
     /// The rotation angle in radians.
-    public var rotation: Float
+    public var rotation: CGFloat
 
     /// The translation component.
-    public var translation: Vector2
+    public var translation: CGVector
 
     /// Creates transform components with the specified values.
     ///
@@ -35,10 +35,10 @@ public struct AffineTransformComponents: Hashable, Sendable {
     ///   - rotation: The rotation angle in radians.
     ///   - translation: The translation vector.
     public init(
-        scale: Size = Size(width: 1, height: 1),
-        horizontalShear: Float = 0,
-        rotation: Float = 0,
-        translation: Vector2 = .zero
+        scale: CGSize = CGSize(width: 1, height: 1),
+        horizontalShear: CGFloat = 0,
+        rotation: CGFloat = 0,
+        translation: CGVector = .zero
     ) {
         self.scale = scale
         self.horizontalShear = horizontalShear
@@ -47,30 +47,28 @@ public struct AffineTransformComponents: Hashable, Sendable {
     }
 }
 
-// MARK: - AffineTransform Extension
+// MARK: - CGAffineTransform Extension
 
-extension AffineTransform {
+extension CGAffineTransform {
     /// Creates an affine transform from components.
     ///
     /// - Parameter components: The transform components.
     public init(_ components: AffineTransformComponents) {
         // Build transform: T * R * Sh * S
         // Translation
-        var transform = AffineTransform.translation(components.translation)
+        var transform = CGAffineTransform(translationX: components.translation.dx, y: components.translation.dy)
 
         // Rotation
-        transform = transform.concatenated(with: .rotation(components.rotation))
+        transform = transform.concatenating(CGAffineTransform(rotationAngle: components.rotation))
 
         // Shear
         if components.horizontalShear != 0 {
-            transform = transform.concatenated(with: .shear(x: components.horizontalShear, y: 0))
+            let shearTransform = CGAffineTransform(a: 1, b: 0, c: components.horizontalShear, d: 1, tx: 0, ty: 0)
+            transform = transform.concatenating(shearTransform)
         }
 
         // Scale
-        transform = transform.concatenated(with: .scale(
-            x: components.scale.width,
-            y: components.scale.height
-        ))
+        transform = transform.concatenating(CGAffineTransform(scaleX: components.scale.width, y: components.scale.height))
 
         self = transform
     }
@@ -82,7 +80,7 @@ extension AffineTransform {
     /// - Returns: The decomposed components.
     public func decomposed() -> AffineTransformComponents {
         // Extract translation
-        let translation = Vector2(dx: tx, dy: ty)
+        let translation = CGVector(dx: tx, dy: ty)
 
         // Extract scale and rotation from the 2x2 matrix part
         // The 2x2 part is:
@@ -93,8 +91,8 @@ extension AffineTransform {
         let scaleX = sqrt(a * a + b * b)
 
         // Normalize first column to get rotation
-        var cosR: Float = 1
-        var sinR: Float = 0
+        var cosR: CGFloat = 1
+        var sinR: CGFloat = 0
         if scaleX != 0 {
             cosR = a / scaleX
             sinR = b / scaleX
@@ -123,13 +121,13 @@ extension AffineTransform {
         let scaleY = ud
 
         // Extract horizontal shear
-        var horizontalShear: Float = 0
+        var horizontalShear: CGFloat = 0
         if scaleX != 0 {
             horizontalShear = uc / scaleX
         }
 
         return AffineTransformComponents(
-            scale: Size(width: scaleX, height: scaleY),
+            scale: CGSize(width: scaleX, height: scaleY),
             horizontalShear: horizontalShear,
             rotation: rotation,
             translation: translation
@@ -154,14 +152,14 @@ extension AffineTransformComponents: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let scaleWidth = try container.decode(Float.self, forKey: .scaleWidth)
-        let scaleHeight = try container.decode(Float.self, forKey: .scaleHeight)
-        scale = Size(width: scaleWidth, height: scaleHeight)
-        horizontalShear = try container.decode(Float.self, forKey: .horizontalShear)
-        rotation = try container.decode(Float.self, forKey: .rotation)
-        let tx = try container.decode(Float.self, forKey: .tx)
-        let ty = try container.decode(Float.self, forKey: .ty)
-        translation = Vector2(dx: tx, dy: ty)
+        let scaleWidth = try container.decode(CGFloat.self, forKey: .scaleWidth)
+        let scaleHeight = try container.decode(CGFloat.self, forKey: .scaleHeight)
+        scale = CGSize(width: scaleWidth, height: scaleHeight)
+        horizontalShear = try container.decode(CGFloat.self, forKey: .horizontalShear)
+        rotation = try container.decode(CGFloat.self, forKey: .rotation)
+        let tx = try container.decode(CGFloat.self, forKey: .tx)
+        let ty = try container.decode(CGFloat.self, forKey: .ty)
+        translation = CGVector(dx: tx, dy: ty)
     }
 
     public func encode(to encoder: Encoder) throws {

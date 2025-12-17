@@ -70,8 +70,8 @@ public final class SNSNWarpGeometryGrid: SNWarpGeometry {
         // Initialize with regular grid positions
         for row in 0..<vertexRows {
             for col in 0..<vertexCols {
-                let x = Float(col) / Float(self.columns)
-                let y = Float(row) / Float(self.rows)
+                let x = CGFloat(col) / CGFloat(self.columns)
+                let y = CGFloat(row) / CGFloat(self.rows)
                 let point = Point(x: x, y: y)
                 self.sourcePositions.append(point)
                 self.destinationPositions.append(point)
@@ -239,7 +239,7 @@ public final class SNSNWarpGeometryGrid: SNWarpGeometry {
     public static func interpolate(
         from: SNSNWarpGeometryGrid,
         to: SNSNWarpGeometryGrid,
-        progress: Float
+        progress: CGFloat
     ) -> SNSNWarpGeometryGrid? {
         guard from.columns == to.columns && from.rows == to.rows else {
             return nil
@@ -291,8 +291,8 @@ public final class SNSNWarpGeometryGrid: SNWarpGeometry {
 
         for row in 0..<vertexRows {
             for col in 0..<vertexCols {
-                let x = Float(col) / Float(columns)
-                let y = Float(row) / Float(rows)
+                let x = CGFloat(col) / CGFloat(columns)
+                let y = CGFloat(row) / CGFloat(rows)
                 positions.append(Point(x: x, y: y))
             }
         }
@@ -317,9 +317,9 @@ extension SNSNWarpGeometryGrid {
     public static func wave(
         columns: Int,
         rows: Int,
-        amplitude: Float,
-        frequency: Float,
-        phase: Float = 0,
+        amplitude: CGFloat,
+        frequency: CGFloat,
+        phase: CGFloat = 0,
         horizontal: Bool = true
     ) -> SNSNWarpGeometryGrid {
         let grid = SNSNWarpGeometryGrid(columns: columns, rows: rows)
@@ -329,7 +329,7 @@ extension SNSNWarpGeometryGrid {
                 guard let index = grid.vertexIndex(atColumn: col, row: row) else { continue }
                 let source = grid.sourcePosition(at: index)
 
-                let offset: Float
+                let offset: CGFloat
                 if horizontal {
                     offset = sin(source.y * frequency * .pi * 2 + phase) * amplitude
                     grid.setDestinationPosition(
@@ -362,8 +362,8 @@ extension SNSNWarpGeometryGrid {
         columns: Int,
         rows: Int,
         center: Point = Point(x: 0.5, y: 0.5),
-        radius: Float = 0.5,
-        strength: Float = 0.3
+        radius: CGFloat = 0.5,
+        strength: CGFloat = 0.3
     ) -> SNSNWarpGeometryGrid {
         let grid = SNSNWarpGeometryGrid(columns: columns, rows: rows)
 
@@ -377,9 +377,9 @@ extension SNSNWarpGeometryGrid {
                 let distance = sqrt(dx * dx + dy * dy)
 
                 if distance < radius && distance > 0 {
-                    let factor: Float = 1.0 - (distance / radius)
-                    let bulgeAmount: Float = factor * factor * strength
-                    let scale: Float = 1.0 + bulgeAmount
+                    let factor: CGFloat = 1.0 - (distance / radius)
+                    let bulgeAmount: CGFloat = factor * factor * strength
+                    let scale: CGFloat = 1.0 + bulgeAmount
 
                     let newX = center.x + dx * scale
                     let newY = center.y + dy * scale
@@ -404,8 +404,8 @@ extension SNSNWarpGeometryGrid {
         columns: Int,
         rows: Int,
         center: Point = Point(x: 0.5, y: 0.5),
-        radius: Float = 0.5,
-        angle: Float = Float.pi / 4
+        radius: CGFloat = 0.5,
+        angle: CGFloat = CGFloat.pi / 4
     ) -> SNSNWarpGeometryGrid {
         let grid = SNSNWarpGeometryGrid(columns: columns, rows: rows)
 
@@ -419,8 +419,8 @@ extension SNSNWarpGeometryGrid {
                 let distance = sqrt(dx * dx + dy * dy)
 
                 if distance < radius {
-                    let factor: Float = 1.0 - (distance / radius)
-                    let rotation: Float = factor * factor * angle
+                    let factor: CGFloat = 1.0 - (distance / radius)
+                    let rotation: CGFloat = factor * factor * angle
 
                     let cosR = cos(rotation)
                     let sinR = sin(rotation)

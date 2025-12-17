@@ -122,7 +122,7 @@ public struct ShapePath: Sendable {
     /// - Parameters:
     ///   - rect: The rectangle to add.
     ///   - cornerRadius: The radius of the corners.
-    public mutating func addRoundedRect(_ rect: Rect, cornerRadius: Float) {
+    public mutating func addRoundedRect(_ rect: Rect, cornerRadius: CGFloat) {
         let r = min(cornerRadius, min(rect.width, rect.height) / 2)
 
         move(to: Point(x: rect.minX + r, y: rect.minY))
@@ -169,7 +169,7 @@ public struct ShapePath: Sendable {
 
         // Approximate ellipse with 4 cubic Bezier curves
         // Magic number for cubic Bezier approximation of circle
-        let k: Float = 0.5522847498
+        let k: CGFloat = 0.5522847498
 
         move(to: Point(x: cx + rx, y: cy))
 
@@ -214,9 +214,9 @@ public struct ShapePath: Sendable {
     ///   - clockwise: Whether to draw clockwise.
     public mutating func addArc(
         center: Point,
-        radius: Float,
-        startAngle: Float,
-        endAngle: Float,
+        radius: CGFloat,
+        startAngle: CGFloat,
+        endAngle: CGFloat,
         clockwise: Bool
     ) {
         let startX = center.x + cos(startAngle) * radius
@@ -234,8 +234,8 @@ public struct ShapePath: Sendable {
             (endAngle < startAngle ? endAngle : endAngle - 2 * .pi) :
             (endAngle > startAngle ? endAngle : endAngle + 2 * .pi)
 
-        let step: Float = clockwise ? -.pi / 2 : .pi / 2
-        let direction: Float = clockwise ? -1 : 1
+        let step: CGFloat = clockwise ? -.pi / 2 : .pi / 2
+        let direction: CGFloat = clockwise ? -1 : 1
 
         while (clockwise && angle > endAngleNormalized) || (!clockwise && angle < endAngleNormalized) {
             var nextAngle = angle + step
@@ -279,10 +279,10 @@ public struct ShapePath: Sendable {
             return .zero
         }
 
-        var minX: Float = .greatestFiniteMagnitude
-        var minY: Float = .greatestFiniteMagnitude
-        var maxX: Float = -.greatestFiniteMagnitude
-        var maxY: Float = -.greatestFiniteMagnitude
+        var minX: CGFloat = .greatestFiniteMagnitude
+        var minY: CGFloat = .greatestFiniteMagnitude
+        var maxX: CGFloat = -.greatestFiniteMagnitude
+        var maxY: CGFloat = -.greatestFiniteMagnitude
 
         for element in elements {
             switch element {
@@ -330,19 +330,19 @@ public struct ShapePath: Sendable {
         for element in elements {
             switch element {
             case .moveTo(let point):
-                newPath.move(to: transform.transform(point))
+                newPath.move(to: point.applying(transform))
             case .lineTo(let point):
-                newPath.addLine(to: transform.transform(point))
+                newPath.addLine(to: point.applying(transform))
             case .quadCurveTo(let control, let end):
                 newPath.addQuadCurve(
-                    to: transform.transform(end),
-                    control: transform.transform(control)
+                    to: end.applying(transform),
+                    control: control.applying(transform)
                 )
             case .curveTo(let control1, let control2, let end):
                 newPath.addCurve(
-                    to: transform.transform(end),
-                    control1: transform.transform(control1),
-                    control2: transform.transform(control2)
+                    to: end.applying(transform),
+                    control1: control1.applying(transform),
+                    control2: control2.applying(transform)
                 )
             case .closeSubpath:
                 newPath.close()
@@ -360,7 +360,7 @@ extension ShapePath {
     ///
     /// - Parameter t: The normalized position (0 to 1).
     /// - Returns: The point at that position, or nil if the path is empty.
-    public func point(at t: Float) -> Point? {
+    public func point(at t: CGFloat) -> Point? {
         let points = linearizedPoints()
         guard points.count >= 2 else { return points.first }
 
@@ -369,7 +369,7 @@ extension ShapePath {
         guard totalLength > 0 else { return points.first }
 
         let targetLength = clamped * totalLength
-        var accumulatedLength: Float = 0
+        var accumulatedLength: CGFloat = 0
 
         for i in 0..<(points.count - 1) {
             let p0 = points[i]
@@ -396,7 +396,7 @@ extension ShapePath {
     /// The length is calculated by linearizing curves into segments.
     ///
     /// - Returns: The approximate length of the path in points.
-    public func approximateLength() -> Float {
+    public func approximateLength() -> CGFloat {
         let points = linearizedPoints()
         return pathLength(points: points)
     }
@@ -422,7 +422,7 @@ extension ShapePath {
                 // Sample the quadratic curve
                 let steps = 10
                 for i in 1...steps {
-                    let t = Float(i) / Float(steps)
+                    let t = CGFloat(i) / CGFloat(steps)
                     let p = quadraticBezier(p0: currentPoint, p1: control, p2: end, t: t)
                     points.append(p)
                 }
@@ -432,7 +432,7 @@ extension ShapePath {
                 // Sample the cubic curve
                 let steps = 10
                 for i in 1...steps {
-                    let t = Float(i) / Float(steps)
+                    let t = CGFloat(i) / CGFloat(steps)
                     let p = cubicBezier(p0: currentPoint, p1: c1, p2: c2, p3: end, t: t)
                     points.append(p)
                 }
@@ -449,21 +449,21 @@ extension ShapePath {
         return points
     }
 
-    private func pathLength(points: [Point]) -> Float {
-        var length: Float = 0
+    private func pathLength(points: [Point]) -> CGFloat {
+        var length: CGFloat = 0
         for i in 0..<(points.count - 1) {
             length += distance(from: points[i], to: points[i + 1])
         }
         return length
     }
 
-    private func distance(from p0: Point, to p1: Point) -> Float {
+    private func distance(from p0: Point, to p1: Point) -> CGFloat {
         let dx = p1.x - p0.x
         let dy = p1.y - p0.y
         return sqrt(dx * dx + dy * dy)
     }
 
-    private func quadraticBezier(p0: Point, p1: Point, p2: Point, t: Float) -> Point {
+    private func quadraticBezier(p0: Point, p1: Point, p2: Point, t: CGFloat) -> Point {
         let mt = 1 - t
         return Point(
             x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
@@ -471,7 +471,7 @@ extension ShapePath {
         )
     }
 
-    private func cubicBezier(p0: Point, p1: Point, p2: Point, p3: Point, t: Float) -> Point {
+    private func cubicBezier(p0: Point, p1: Point, p2: Point, p3: Point, t: CGFloat) -> Point {
         let mt = 1 - t
         let mt2 = mt * mt
         let mt3 = mt2 * mt

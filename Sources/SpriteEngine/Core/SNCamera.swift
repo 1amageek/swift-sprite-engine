@@ -15,7 +15,7 @@
 ///
 /// ## Following a Target
 /// ```swift
-/// override func update(dt: Float) {
+/// override func update(dt: CGFloat) {
 ///     camera?.position = player.position
 /// }
 /// ```
@@ -25,7 +25,7 @@
 /// creating a HUD effect:
 /// ```swift
 /// let scoreLabel = SNLabelNode(text: "Score: 0")
-/// scoreLabel.position = Point(x: -350, y: 250)  // Relative to camera
+/// scoreLabel.position = CGPoint(x: -350, y: 250)  // Relative to camera
 /// camera.addChild(scoreLabel)
 /// ```
 open class SNCamera: SNNode {
@@ -45,11 +45,11 @@ open class SNCamera: SNNode {
     ///
     /// - Parameter sceneSize: The scene's logical size.
     /// - Returns: The visible area in scene coordinates.
-    public func viewport(for sceneSize: Size) -> Rect {
+    public func viewport(for sceneSize: CGSize) -> CGRect {
         let scaledWidth = sceneSize.width / scale.width
         let scaledHeight = sceneSize.height / scale.height
 
-        return Rect(
+        return CGRect(
             x: position.x - scaledWidth / 2,
             y: position.y - scaledHeight / 2,
             width: scaledWidth,
@@ -65,12 +65,12 @@ open class SNCamera: SNNode {
     ///   - node: The node to test.
     ///   - sceneSize: The scene's logical size.
     /// - Returns: `true` if any part of the node is visible.
-    public func contains(_ node: SNNode, sceneSize: Size) -> Bool {
+    public func contains(_ node: SNNode, sceneSize: CGSize) -> Bool {
         let viewportRect = viewport(for: sceneSize)
         let nodeFrame = node.calculateAccumulatedFrame()
 
         // Transform node frame to world coordinates
-        let worldFrame = Rect(
+        let worldFrame = CGRect(
             origin: node.worldPosition,
             size: nodeFrame.size
         )
@@ -94,7 +94,7 @@ open class SNCamera: SNNode {
     }
 
     /// Recursively collects visible nodes.
-    private func collectVisibleNodes(from node: SNNode, viewport: Rect, into result: inout [SNNode]) {
+    private func collectVisibleNodes(from node: SNNode, viewport: CGRect, into result: inout [SNNode]) {
         // Skip hidden nodes
         guard !node.isHidden else { return }
 
@@ -104,7 +104,7 @@ open class SNCamera: SNNode {
             let size = sprite.size
             let anchor = sprite.anchorPoint
 
-            let spriteBounds = Rect(
+            let spriteBounds = CGRect(
                 x: worldPos.x - size.width * anchor.x,
                 y: worldPos.y - size.height * anchor.y,
                 width: size.width,
@@ -130,23 +130,12 @@ open class SNCamera: SNNode {
     ///
     /// This transform converts from scene coordinates to view coordinates,
     /// accounting for the camera's position, rotation, and scale.
-    public func viewTransform(sceneSize: Size, viewSize: Size) -> AffineTransform {
-        // Start with identity
-        var transform = AffineTransform.identity
-
-        // Move origin to view center
-        transform = transform.translated(x: viewSize.width / 2, y: viewSize.height / 2)
-
-        // Apply camera scale (zoom)
-        transform = transform.scaled(x: scale.width, y: scale.height)
-
-        // Apply camera rotation (negated because we're transforming the world, not the camera)
-        transform = transform.rotated(by: -rotation)
-
-        // Translate by negated camera position
-        transform = transform.translated(x: -position.x, y: -position.y)
-
-        return transform
+    public func viewTransform(sceneSize: CGSize, viewSize: CGSize) -> CGAffineTransform {
+        CGAffineTransform.identity
+            .translatedBy(x: viewSize.width / 2, y: viewSize.height / 2)
+            .scaledBy(x: scale.width, y: scale.height)
+            .rotated(by: -rotation)
+            .translatedBy(x: -position.x, y: -position.y)
     }
 
     // MARK: - Convenience Properties
@@ -155,15 +144,15 @@ open class SNCamera: SNNode {
     ///
     /// - Parameter zoom: The zoom factor. Values > 1 zoom in, < 1 zoom out.
     @inlinable
-    public func setZoom(_ zoom: Float) {
-        scale = Size(width: zoom, height: zoom)
+    public func setZoom(_ zoom: CGFloat) {
+        scale = CGSize(width: zoom, height: zoom)
     }
 
     /// Returns the current zoom level (assuming uniform scale).
     @inlinable
-    public var zoom: Float {
+    public var zoom: CGFloat {
         get { scale.width }
-        set { scale = Size(width: newValue, height: newValue) }
+        set { scale = CGSize(width: newValue, height: newValue) }
     }
 
     /// Smoothly moves the camera toward a target position.
@@ -173,9 +162,9 @@ open class SNCamera: SNNode {
     ///   - smoothing: The smoothing factor (higher = faster).
     ///   - dt: The delta time.
     @inlinable
-    public func smoothFollow(target: Point, smoothing: Float, dt: Float) {
+    public func smoothFollow(target: CGPoint, smoothing: CGFloat, dt: CGFloat) {
         let factor = min(1.0, smoothing * dt)
-        position = Point.lerp(from: position, to: target, t: factor)
+        position = CGPoint.lerp(from: position, to: target, t: factor)
     }
 
     /// Clamps the camera position within bounds.
@@ -184,7 +173,7 @@ open class SNCamera: SNNode {
     ///   - bounds: The allowable bounds for the camera position.
     ///   - sceneSize: The scene's logical size.
     @inlinable
-    public func clampToBounds(_ bounds: Rect, sceneSize: Size) {
+    public func clampToBounds(_ bounds: CGRect, sceneSize: CGSize) {
         let vp = viewport(for: sceneSize)
         let halfWidth = vp.width / 2
         let halfHeight = vp.height / 2

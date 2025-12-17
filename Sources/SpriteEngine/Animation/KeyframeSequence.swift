@@ -21,7 +21,7 @@ public struct KeyframeSequence<Value>: Sendable where Value: Sendable {
     private var values: [Value]
 
     /// The times for each keyframe (normalized 0-1).
-    private var times: [Float]
+    private var times: [CGFloat]
 
     /// The interpolation mode.
     public var interpolationMode: InterpolationMode = .linear
@@ -36,7 +36,7 @@ public struct KeyframeSequence<Value>: Sendable where Value: Sendable {
     /// - Parameters:
     ///   - keyframes: The values at each keyframe.
     ///   - times: The times for each keyframe (should be sorted, typically 0-1).
-    public init(keyframes: [Value], times: [Float]) {
+    public init(keyframes: [Value], times: [CGFloat]) {
         precondition(keyframes.count == times.count, "Keyframes and times must have the same count")
         precondition(!keyframes.isEmpty, "Keyframe sequence must have at least one keyframe")
         self.values = keyframes
@@ -65,7 +65,7 @@ public struct KeyframeSequence<Value>: Sendable where Value: Sendable {
     /// - Parameters:
     ///   - value: The keyframe value.
     ///   - time: The time for the keyframe.
-    public mutating func addKeyframe(value: Value, time: Float) {
+    public mutating func addKeyframe(value: Value, time: CGFloat) {
         // Insert in sorted order
         let index = times.firstIndex { $0 > time } ?? times.count
         values.insert(value, at: index)
@@ -101,7 +101,7 @@ public struct KeyframeSequence<Value>: Sendable where Value: Sendable {
     ///
     /// - Parameter index: The keyframe index.
     /// - Returns: The time at that index.
-    public func getKeyframeTime(at index: Int) -> Float? {
+    public func getKeyframeTime(at index: Int) -> CGFloat? {
         guard index >= 0 && index < count else { return nil }
         return times[index]
     }
@@ -121,20 +121,20 @@ public struct KeyframeSequence<Value>: Sendable where Value: Sendable {
     /// - Parameters:
     ///   - time: The new time.
     ///   - index: The keyframe index.
-    public mutating func setKeyframeTime(_ time: Float, at index: Int) {
+    public mutating func setKeyframeTime(_ time: CGFloat, at index: Int) {
         guard index >= 0 && index < count else { return }
         times[index] = time
     }
 }
 
-// MARK: - Sampling (Float)
+// MARK: - Sampling (CGFloat)
 
-extension KeyframeSequence where Value == Float {
+extension KeyframeSequence where Value == CGFloat {
     /// Samples the sequence at the specified time.
     ///
     /// - Parameter time: The time to sample at.
     /// - Returns: The interpolated value.
-    public func sample(at time: Float) -> Float {
+    public func sample(at time: CGFloat) -> CGFloat {
         guard count > 0 else { return 0 }
         guard count > 1 else { return values[0] }
 
@@ -146,7 +146,7 @@ extension KeyframeSequence where Value == Float {
         return interpolate(from: values[index0], to: values[index1], t: t)
     }
 
-    private func interpolate(from: Float, to: Float, t: Float) -> Float {
+    private func interpolate(from: CGFloat, to: CGFloat, t: CGFloat) -> CGFloat {
         switch interpolationMode {
         case .linear:
             return from + (to - from) * t
@@ -167,7 +167,7 @@ extension KeyframeSequence where Value == Color {
     ///
     /// - Parameter time: The time to sample at.
     /// - Returns: The interpolated color.
-    public func sample(at time: Float) -> Color {
+    public func sample(at time: CGFloat) -> Color {
         guard count > 0 else { return .white }
         guard count > 1 else { return values[0] }
 
@@ -177,8 +177,8 @@ extension KeyframeSequence where Value == Color {
         return interpolateColor(from: values[index0], to: values[index1], t: t)
     }
 
-    private func interpolateColor(from: Color, to: Color, t: Float) -> Color {
-        let effectiveT: Float
+    private func interpolateColor(from: Color, to: Color, t: CGFloat) -> Color {
+        let effectiveT: CGFloat
         switch interpolationMode {
         case .linear:
             effectiveT = t
@@ -199,7 +199,7 @@ extension KeyframeSequence where Value == Point {
     ///
     /// - Parameter time: The time to sample at.
     /// - Returns: The interpolated point.
-    public func sample(at time: Float) -> Point {
+    public func sample(at time: CGFloat) -> Point {
         guard count > 0 else { return .zero }
         guard count > 1 else { return values[0] }
 
@@ -209,8 +209,8 @@ extension KeyframeSequence where Value == Point {
         return interpolatePoint(from: values[index0], to: values[index1], t: t)
     }
 
-    private func interpolatePoint(from: Point, to: Point, t: Float) -> Point {
-        let effectiveT: Float
+    private func interpolatePoint(from: Point, to: Point, t: CGFloat) -> Point {
+        let effectiveT: CGFloat
         switch interpolationMode {
         case .linear:
             effectiveT = t
@@ -231,7 +231,7 @@ extension KeyframeSequence where Value == Size {
     ///
     /// - Parameter time: The time to sample at.
     /// - Returns: The interpolated size.
-    public func sample(at time: Float) -> Size {
+    public func sample(at time: CGFloat) -> Size {
         guard count > 0 else { return .zero }
         guard count > 1 else { return values[0] }
 
@@ -241,8 +241,8 @@ extension KeyframeSequence where Value == Size {
         return interpolateSize(from: values[index0], to: values[index1], t: t)
     }
 
-    private func interpolateSize(from: Size, to: Size, t: Float) -> Size {
-        let effectiveT: Float
+    private func interpolateSize(from: Size, to: Size, t: CGFloat) -> Size {
+        let effectiveT: CGFloat
         switch interpolationMode {
         case .linear:
             effectiveT = t
@@ -260,7 +260,7 @@ extension KeyframeSequence where Value == Size {
 
 extension KeyframeSequence {
     /// Adjusts time based on repeat mode.
-    private func adjustTime(_ time: Float) -> Float {
+    private func adjustTime(_ time: CGFloat) -> CGFloat {
         guard let firstTime = times.first, let lastTime = times.last else { return time }
 
         let duration = lastTime - firstTime
@@ -300,7 +300,7 @@ extension KeyframeSequence {
     ///
     /// - Parameter time: The time to find keyframes for.
     /// - Returns: A tuple of (lower index, upper index, interpolation factor).
-    private func findKeyframes(at time: Float) -> (Int, Int, Float) {
+    private func findKeyframes(at time: CGFloat) -> (Int, Int, CGFloat) {
         // Find the first keyframe with time > adjustedTime
         let upperIndex = times.firstIndex { $0 > time } ?? times.count
 
@@ -321,4 +321,3 @@ extension KeyframeSequence {
         return (lowerIndex, upperIndex, t)
     }
 }
-

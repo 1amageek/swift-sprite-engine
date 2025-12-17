@@ -41,7 +41,7 @@ public final class SNEmitterNode: SNNode {
     // MARK: - Particle Birth Rate
 
     /// The rate at which new particles are created, in particles per second.
-    public var particleBirthRate: Float = 0
+    public var particleBirthRate: CGFloat = 0
 
     /// The maximum number of particles to emit before stopping.
     /// Set to 0 for unlimited particles.
@@ -50,10 +50,10 @@ public final class SNEmitterNode: SNNode {
     // MARK: - Particle Lifetime
 
     /// The average lifetime of a particle in seconds.
-    public var particleLifetime: Float = 1.0
+    public var particleLifetime: CGFloat = 1.0
 
     /// The range of random values for particle lifetime.
-    public var particleLifetimeRange: Float = 0
+    public var particleLifetimeRange: CGFloat = 0
 
     // MARK: - Particle Position
 
@@ -64,55 +64,55 @@ public final class SNEmitterNode: SNNode {
     public var particlePositionRange: Size = .zero
 
     /// The average starting z-position for particles.
-    public var particleZPosition: Float = 0
+    public var particleZPosition: CGFloat = 0
 
     /// The range of random values for particle z-position.
-    public var particleZPositionRange: Float = 0
+    public var particleZPositionRange: CGFloat = 0
 
     /// The speed at which the particle's depth changes per second.
-    public var particleZPositionSpeed: Float = 0
+    public var particleZPositionSpeed: CGFloat = 0
 
     // MARK: - Particle Velocity
 
     /// The average initial speed of particles in points per second.
-    public var particleSpeed: Float = 0
+    public var particleSpeed: CGFloat = 0
 
     /// The range of random values for particle speed.
-    public var particleSpeedRange: Float = 0
+    public var particleSpeedRange: CGFloat = 0
 
     /// The average initial direction of particles in radians.
-    public var emissionAngle: Float = 0
+    public var emissionAngle: CGFloat = 0
 
     /// The range of random values for emission angle in radians.
-    public var emissionAngleRange: Float = 0
+    public var emissionAngleRange: CGFloat = 0
 
     /// The acceleration applied to particles in the x direction.
-    public var xAcceleration: Float = 0
+    public var xAcceleration: CGFloat = 0
 
     /// The acceleration applied to particles in the y direction.
-    public var yAcceleration: Float = 0
+    public var yAcceleration: CGFloat = 0
 
     // MARK: - Particle Rotation
 
     /// The average initial rotation of particles in radians.
-    public var particleRotation: Float = 0
+    public var particleRotation: CGFloat = 0
 
     /// The range of random values for particle rotation.
-    public var particleRotationRange: Float = 0
+    public var particleRotationRange: CGFloat = 0
 
     /// The speed at which particles rotate in radians per second.
-    public var particleRotationSpeed: Float = 0
+    public var particleRotationSpeed: CGFloat = 0
 
     // MARK: - Particle Scale
 
     /// The average initial scale of particles.
-    public var particleScale: Float = 1.0
+    public var particleScale: CGFloat = 1.0
 
     /// The range of random values for particle scale.
-    public var particleScaleRange: Float = 0
+    public var particleScaleRange: CGFloat = 0
 
     /// The rate at which particle scale changes per second.
-    public var particleScaleSpeed: Float = 0
+    public var particleScaleSpeed: CGFloat = 0
 
     /// The sequence used to specify the scale factor of a particle over its lifetime.
     ///
@@ -134,28 +134,28 @@ public final class SNEmitterNode: SNNode {
     public var particleColor: Color = .white
 
     /// The range of random values for the red component.
-    public var particleColorRedRange: Float = 0
+    public var particleColorRedRange: CGFloat = 0
 
     /// The range of random values for the green component.
-    public var particleColorGreenRange: Float = 0
+    public var particleColorGreenRange: CGFloat = 0
 
     /// The range of random values for the blue component.
-    public var particleColorBlueRange: Float = 0
+    public var particleColorBlueRange: CGFloat = 0
 
     /// The range of random values for the alpha component.
-    public var particleColorAlphaRange: Float = 0
+    public var particleColorAlphaRange: CGFloat = 0
 
     /// The rate at which the red component changes per second.
-    public var particleColorRedSpeed: Float = 0
+    public var particleColorRedSpeed: CGFloat = 0
 
     /// The rate at which the green component changes per second.
-    public var particleColorGreenSpeed: Float = 0
+    public var particleColorGreenSpeed: CGFloat = 0
 
     /// The rate at which the blue component changes per second.
-    public var particleColorBlueSpeed: Float = 0
+    public var particleColorBlueSpeed: CGFloat = 0
 
     /// The rate at which the alpha component changes per second.
-    public var particleColorAlphaSpeed: Float = 0
+    public var particleColorAlphaSpeed: CGFloat = 0
 
     /// The sequence used to specify the color components of a particle over its lifetime.
     ///
@@ -165,13 +165,13 @@ public final class SNEmitterNode: SNNode {
     // MARK: - Color Blending
 
     /// The amount of color blending with the texture.
-    public var particleColorBlendFactor: Float = 0
+    public var particleColorBlendFactor: CGFloat = 0
 
     /// The range of random values for color blend factor.
-    public var particleColorBlendFactorRange: Float = 0
+    public var particleColorBlendFactorRange: CGFloat = 0
 
     /// The rate at which color blend factor changes per second.
-    public var particleColorBlendFactorSpeed: Float = 0
+    public var particleColorBlendFactorSpeed: CGFloat = 0
 
     /// The sequence used to specify the color blend factor of a particle over its lifetime.
     public var particleColorBlendFactorSequence: SNKeyframeSequence?
@@ -179,13 +179,13 @@ public final class SNEmitterNode: SNNode {
     // MARK: - Alpha
 
     /// The average initial alpha value of particles.
-    public var particleAlpha: Float = 1.0
+    public var particleAlpha: CGFloat = 1.0
 
     /// The range of random values for particle alpha.
-    public var particleAlphaRange: Float = 0
+    public var particleAlphaRange: CGFloat = 0
 
     /// The rate at which particle alpha changes per second.
-    public var particleAlphaSpeed: Float = 0
+    public var particleAlphaSpeed: CGFloat = 0
 
     /// The sequence used to specify the alpha value of a particle over its lifetime.
     ///
@@ -248,7 +248,7 @@ public final class SNEmitterNode: SNNode {
 
     private var particles: [Particle] = []
     private var totalParticlesEmitted: Int = 0
-    private var timeSinceLastEmission: Float = 0
+    private var timeSinceLastEmission: CGFloat = 0
     private var isEmitting: Bool = true
 
     /// Reusable proxy node for action evaluation (avoids per-frame allocation)
@@ -269,7 +269,7 @@ public final class SNEmitterNode: SNNode {
     /// already be visible when they appear.
     ///
     /// - Parameter time: The time interval to advance.
-    public func advanceSimulationTime(_ time: Float) {
+    public func advanceSimulationTime(_ time: CGFloat) {
         // If paused, temporarily unpause
         let wasPaused = isPaused
         if wasPaused {
@@ -277,7 +277,7 @@ public final class SNEmitterNode: SNNode {
         }
 
         let steps = Int(time / (1.0 / 60.0))
-        let dt: Float = 1.0 / 60.0
+        let dt: CGFloat = 1.0 / 60.0
         for _ in 0..<steps {
             updateParticles(deltaTime: dt)
         }
@@ -300,7 +300,7 @@ public final class SNEmitterNode: SNNode {
     /// Updates the particle system.
     ///
     /// - Parameter deltaTime: The time since the last update.
-    public func updateParticles(deltaTime: Float) {
+    public func updateParticles(deltaTime: CGFloat) {
         // Don't update if paused
         if isPaused { return }
 
@@ -396,7 +396,7 @@ public final class SNEmitterNode: SNNode {
 
             // Scale: Sequence > Action > Speed-based
             if let scaleSequence = particleScaleSequence {
-                particle.scale = scaleSequence.sampleFloat(atTime: progress)
+                particle.scale = scaleSequence.sampleCGFloat(atTime: progress)
             } else if particle.actionComplete && particleScaleSpeed != 0 {
                 // Speed-based only applies when action is complete (action controls while running)
                 particle.scale += particleScaleSpeed * deltaTime
@@ -418,7 +418,7 @@ public final class SNEmitterNode: SNNode {
 
             // Alpha: Sequence > Action > Speed-based
             if let alphaSequence = particleAlphaSequence {
-                particle.alpha = alphaSequence.sampleFloat(atTime: progress)
+                particle.alpha = alphaSequence.sampleCGFloat(atTime: progress)
             } else if particle.actionComplete && particleAlphaSpeed != 0 {
                 particle.alpha += particleAlphaSpeed * deltaTime
             }
@@ -426,7 +426,7 @@ public final class SNEmitterNode: SNNode {
 
             // Color blend factor: Sequence > Action > Speed-based
             if let blendSequence = particleColorBlendFactorSequence {
-                particle.colorBlendFactor = blendSequence.sampleFloat(atTime: progress)
+                particle.colorBlendFactor = blendSequence.sampleCGFloat(atTime: progress)
             } else if particle.actionComplete && particleColorBlendFactorSpeed != 0 {
                 particle.colorBlendFactor += particleColorBlendFactorSpeed * deltaTime
             }
@@ -466,7 +466,7 @@ public final class SNEmitterNode: SNNode {
 
         // Scale (use sequence start value if available)
         if let scaleSequence = particleScaleSequence {
-            particle.scale = scaleSequence.sampleFloat(atTime: 0)
+            particle.scale = scaleSequence.sampleCGFloat(atTime: 0)
         } else {
             particle.scale = particleScale + randomRange(-particleScaleRange / 2, particleScaleRange / 2)
         }
@@ -485,7 +485,7 @@ public final class SNEmitterNode: SNNode {
 
         // Alpha (use sequence start value if available)
         if let alphaSequence = particleAlphaSequence {
-            particle.alpha = alphaSequence.sampleFloat(atTime: 0)
+            particle.alpha = alphaSequence.sampleCGFloat(atTime: 0)
         } else {
             particle.alpha = particleAlpha + randomRange(-particleAlphaRange / 2, particleAlphaRange / 2)
         }
@@ -493,7 +493,7 @@ public final class SNEmitterNode: SNNode {
 
         // Color blend factor (use sequence start value if available)
         if let blendSequence = particleColorBlendFactorSequence {
-            particle.colorBlendFactor = blendSequence.sampleFloat(atTime: 0)
+            particle.colorBlendFactor = blendSequence.sampleCGFloat(atTime: 0)
         } else {
             particle.colorBlendFactor = particleColorBlendFactor + randomRange(-particleColorBlendFactorRange / 2, particleColorBlendFactorRange / 2)
         }
@@ -514,8 +514,8 @@ public final class SNEmitterNode: SNNode {
         particles.append(particle)
     }
 
-    private func randomRange(_ min: Float, _ max: Float) -> Float {
-        Float.random(in: min...max)
+    private func randomRange(_ min: CGFloat, _ max: CGFloat) -> CGFloat {
+        CGFloat.random(in: min...max)
     }
 
     // MARK: - Draw Commands
@@ -605,15 +605,15 @@ public final class SNEmitterNode: SNNode {
 private struct Particle {
     var position: Point = .zero
     var velocity: Point = .zero
-    var rotation: Float = 0
-    var rotationSpeed: Float = 0
-    var scale: Float = 1
+    var rotation: CGFloat = 0
+    var rotationSpeed: CGFloat = 0
+    var scale: CGFloat = 1
     var color: Color = .white
-    var alpha: Float = 1
-    var colorBlendFactor: Float = 0
-    var zPosition: Float = 0
-    var age: Float = 0
-    var lifetime: Float = 1
+    var alpha: CGFloat = 1
+    var colorBlendFactor: CGFloat = 0
+    var zPosition: CGFloat = 0
+    var age: CGFloat = 0
+    var lifetime: CGFloat = 1
 
     // Size (can be changed by action, defaults to emitter's particleSize)
     var size: Size?
@@ -751,7 +751,7 @@ extension SNEmitterNode {
     /// - Parameter particleCount: The number of particles in the explosion.
     public static func explosion(particleCount: Int = 100) -> SNEmitterNode {
         let emitter = SNEmitterNode()
-        emitter.particleBirthRate = Float(particleCount) * 10
+        emitter.particleBirthRate = CGFloat(particleCount) * 10
         emitter.numParticlesToEmit = particleCount
         emitter.particleLifetime = 1.0
         emitter.particleLifetimeRange = 0.5
@@ -804,13 +804,13 @@ extension SNEmitterNode {
     ///   - particleCount: The number of particles to emit.
     public static func animatedExplosion(
         textures: [SNTexture],
-        timePerFrame: Float = 0.05,
+        timePerFrame: CGFloat = 0.05,
         particleCount: Int = 20
     ) -> SNEmitterNode {
         let emitter = SNEmitterNode()
-        emitter.particleBirthRate = Float(particleCount) * 5
+        emitter.particleBirthRate = CGFloat(particleCount) * 5
         emitter.numParticlesToEmit = particleCount
-        emitter.particleLifetime = Float(textures.count) * timePerFrame + 0.1
+        emitter.particleLifetime = CGFloat(textures.count) * timePerFrame + 0.1
         emitter.particleSpeed = 100
         emitter.particleSpeedRange = 50
         emitter.emissionAngleRange = .pi * 2

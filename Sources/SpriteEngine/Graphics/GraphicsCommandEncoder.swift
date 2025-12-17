@@ -224,14 +224,14 @@ public protocol GraphicsComputePassEncoder: AnyObject {
 
 /// Viewport configuration.
 public struct Viewport: Sendable {
-    public var x: Float
-    public var y: Float
-    public var width: Float
-    public var height: Float
-    public var minDepth: Float
-    public var maxDepth: Float
+    public var x: CGFloat
+    public var y: CGFloat
+    public var width: CGFloat
+    public var height: CGFloat
+    public var minDepth: CGFloat
+    public var maxDepth: CGFloat
 
-    public init(x: Float, y: Float, width: Float, height: Float, minDepth: Float = 0, maxDepth: Float = 1) {
+    public init(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, minDepth: CGFloat = 0, maxDepth: CGFloat = 1) {
         self.x = x
         self.y = y
         self.width = width

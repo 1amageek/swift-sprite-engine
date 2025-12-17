@@ -118,10 +118,10 @@ public final class SNView: @unchecked Sendable {
     private var activeTransition: SNTransition?
 
     /// Progress of the current transition (0 to 1).
-    private var transitionProgress: Float = 0
+    private var transitionProgress: CGFloat = 0
 
     /// Time accumulator for fixed timestep updates during transitions.
-    private var transitionAccumulator: Float = 0
+    private var transitionAccumulator: CGFloat = 0
 
     /// Whether a transition is currently in progress.
     public var isTransitioning: Bool {
@@ -150,7 +150,7 @@ public final class SNView: @unchecked Sendable {
     /// The fixed timestep used for game updates.
     ///
     /// Default: 1/60 second
-    public var fixedTimestep: Float {
+    public var fixedTimestep: CGFloat {
         get { gameLoop.fixedTimestep }
         set { gameLoop.fixedTimestep = newValue }
     }
@@ -220,7 +220,7 @@ public final class SNView: @unchecked Sendable {
     // MARK: - Statistics
 
     /// The current frames per second.
-    public private(set) var currentFPS: Float = 0
+    public private(set) var currentFPS: CGFloat = 0
 
     /// The number of nodes in the current scene.
     public var nodeCount: Int {
@@ -256,13 +256,13 @@ public final class SNView: @unchecked Sendable {
     internal let gameLoop: GameLoop
 
     /// Last update time for FPS calculation.
-    private var lastUpdateTime: Float = 0
+    private var lastUpdateTime: CGFloat = 0
 
     /// Frame count for FPS calculation.
     private var frameCount: Int = 0
 
     /// Time accumulator for FPS calculation.
-    private var fpsAccumulator: Float = 0
+    private var fpsAccumulator: CGFloat = 0
 
     // MARK: - Initialization
 
@@ -278,9 +278,9 @@ public final class SNView: @unchecked Sendable {
     /// This method should be called each frame by the platform-specific rendering loop.
     ///
     /// - Parameter deltaTime: The time elapsed since the last update.
-    public func update(deltaTime: Float) {
+    public func update(deltaTime: CGFloat) {
         // Check delegate for render permission
-        let currentTime = gameLoop.totalTime + deltaTime
+        let currentTime = CGFloat(gameLoop.totalTime) + deltaTime
         if let delegate = delegate {
             guard delegate.view(self, shouldRenderAtTime: currentTime) else {
                 return
@@ -299,18 +299,18 @@ public final class SNView: @unchecked Sendable {
         }
     }
 
-    private func updateFPS(deltaTime: Float) {
+    private func updateFPS(deltaTime: CGFloat) {
         frameCount += 1
         fpsAccumulator += deltaTime
 
         if fpsAccumulator >= 1.0 {
-            currentFPS = Float(frameCount) / fpsAccumulator
+            currentFPS = CGFloat(frameCount) / fpsAccumulator
             frameCount = 0
             fpsAccumulator = 0
         }
     }
 
-    private func updateTransition(deltaTime: Float, transition: SNTransition) {
+    private func updateTransition(deltaTime: CGFloat, transition: SNTransition) {
         // Update transition progress (visual only, uses real time)
         transitionProgress += deltaTime / transition.duration
 
@@ -406,7 +406,7 @@ public final class SNView: @unchecked Sendable {
                 }
             }
 
-        case .fade(let color):
+        case .fade(_):
             let fadeProgress = transitionProgress
 
             if fadeProgress < 0.5 {
@@ -625,13 +625,13 @@ public protocol SNViewDelegate: AnyObject {
     ///   - view: The view requesting permission to render.
     ///   - time: The current time.
     /// - Returns: `true` if the view should render, `false` to skip this frame.
-    func view(_ view: SNView, shouldRenderAtTime time: Float) -> Bool
+    func view(_ view: SNView, shouldRenderAtTime time: CGFloat) -> Bool
 }
 
 // MARK: - Default Implementation
 
 public extension SNViewDelegate {
-    func view(_ view: SNView, shouldRenderAtTime time: Float) -> Bool {
+    func view(_ view: SNView, shouldRenderAtTime time: CGFloat) -> Bool {
         return true
     }
 }

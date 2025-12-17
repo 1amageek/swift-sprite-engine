@@ -39,7 +39,7 @@ internal final class CanvasRenderer {
         size: CGSize,
         showAudioIndicator: Bool = true
     ) {
-        let viewSize = Size(width: Float(size.width), height: Float(size.height))
+        let viewSize = Size(width: CGFloat(size.width), height: CGFloat(size.height))
 
         // Render sprites and tile maps
         for command in commands {
@@ -104,7 +104,7 @@ internal final class CanvasRenderer {
                 if let cgImage = SNTexture.cachedImage(for: command.textureID) {
                     // Check if 9-slice rendering is needed
                     let cr = command.centerRect
-                    let isNineSlice = cr.x > 0 || cr.y > 0 || cr.width < 1 || cr.height < 1
+                    let isNineSlice = cr.minX > 0 || cr.minY > 0 || cr.width < 1 || cr.height < 1
 
                     if isNineSlice {
                         renderNineSlice(cgImage: cgImage, centerRect: cr, destRect: rect, context: &ctx)
@@ -148,10 +148,10 @@ internal final class CanvasRenderer {
 
         // Convert SpriteKit centerRect (Y=0 at bottom) to CGImage coordinates (Y=0 at top)
         // Formula: cgY = 1 - spriteKitY - spriteKitHeight
-        let cgCenterRectX = CGFloat(centerRect.x)
-        let cgCenterRectY = 1.0 - CGFloat(centerRect.y) - CGFloat(centerRect.height)
-        let cgCenterRectW = CGFloat(centerRect.width)
-        let cgCenterRectH = CGFloat(centerRect.height)
+        let cgCenterRectX = centerRect.minX
+        let cgCenterRectY = 1.0 - centerRect.minY - centerRect.height
+        let cgCenterRectW = centerRect.width
+        let cgCenterRectH = centerRect.height
 
         // Calculate pixel boundaries in CGImage coordinates
         let leftWidth = cgCenterRectX * texW

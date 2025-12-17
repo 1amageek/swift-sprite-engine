@@ -1,19 +1,19 @@
 /// A structure that represents an RGBA color.
 ///
 /// `Color` represents colors using red, green, blue, and alpha components,
-/// each in the range [0, 1]. It uses `Float` for WebAssembly compatibility.
+/// each in the range [0, 1]. It uses `CGFloat` for cross-platform compatibility.
 public struct Color: Hashable, Sendable {
     /// The red component (0-1).
-    public var red: Float
+    public var red: CGFloat
 
     /// The green component (0-1).
-    public var green: Float
+    public var green: CGFloat
 
     /// The blue component (0-1).
-    public var blue: Float
+    public var blue: CGFloat
 
     /// The alpha (opacity) component (0-1).
-    public var alpha: Float
+    public var alpha: CGFloat
 
     /// Creates a color with the specified RGBA components.
     ///
@@ -23,7 +23,7 @@ public struct Color: Hashable, Sendable {
     ///   - blue: The blue component (0-1).
     ///   - alpha: The alpha component (0-1). Defaults to 1 (fully opaque).
     @inlinable
-    public init(red: Float, green: Float, blue: Float, alpha: Float = 1) {
+    public init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat = 1) {
         self.red = red
         self.green = green
         self.blue = blue
@@ -40,7 +40,7 @@ extension Color {
     ///   - white: The white level (0 = black, 1 = white).
     ///   - alpha: The alpha component (0-1). Defaults to 1.
     @inlinable
-    public init(white: Float, alpha: Float = 1) {
+    public init(white: CGFloat, alpha: CGFloat = 1) {
         self.red = white
         self.green = white
         self.blue = white
@@ -50,10 +50,10 @@ extension Color {
     /// Creates a color from 8-bit integer components (0-255).
     @inlinable
     public init(red255: UInt8, green255: UInt8, blue255: UInt8, alpha255: UInt8 = 255) {
-        self.red = Float(red255) / 255
-        self.green = Float(green255) / 255
-        self.blue = Float(blue255) / 255
-        self.alpha = Float(alpha255) / 255
+        self.red = CGFloat(red255) / 255
+        self.green = CGFloat(green255) / 255
+        self.blue = CGFloat(blue255) / 255
+        self.alpha = CGFloat(alpha255) / 255
     }
 
     /// Creates a color from a hex integer (0xRRGGBB or 0xRRGGBBAA).
@@ -63,15 +63,15 @@ extension Color {
     public init(hex: UInt32) {
         if hex > 0xFFFFFF {
             // 8 digits: RRGGBBAA
-            self.red = Float((hex >> 24) & 0xFF) / 255
-            self.green = Float((hex >> 16) & 0xFF) / 255
-            self.blue = Float((hex >> 8) & 0xFF) / 255
-            self.alpha = Float(hex & 0xFF) / 255
+            self.red = CGFloat((hex >> 24) & 0xFF) / 255
+            self.green = CGFloat((hex >> 16) & 0xFF) / 255
+            self.blue = CGFloat((hex >> 8) & 0xFF) / 255
+            self.alpha = CGFloat(hex & 0xFF) / 255
         } else {
             // 6 digits: RRGGBB
-            self.red = Float((hex >> 16) & 0xFF) / 255
-            self.green = Float((hex >> 8) & 0xFF) / 255
-            self.blue = Float(hex & 0xFF) / 255
+            self.red = CGFloat((hex >> 16) & 0xFF) / 255
+            self.green = CGFloat((hex >> 8) & 0xFF) / 255
+            self.blue = CGFloat(hex & 0xFF) / 255
             self.alpha = 1
         }
     }
@@ -84,12 +84,12 @@ extension Color {
     ///   - brightness: The brightness (0-1).
     ///   - alpha: The alpha component (0-1). Defaults to 1.
     @inlinable
-    public init(hue: Float, saturation: Float, brightness: Float, alpha: Float = 1) {
+    public init(hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat = 1) {
         let h = hue * 6
         let s = saturation
         let v = brightness
         let i = Int(h)
-        let f = h - Float(i)
+        let f = h - CGFloat(i)
         let p = v * (1 - s)
         let q = v * (1 - s * f)
         let t = v * (1 - s * (1 - f))
@@ -168,13 +168,13 @@ extension Color {
 extension Color {
     /// The color components as an array [red, green, blue, alpha].
     @inlinable
-    public var components: [Float] {
+    public var components: [CGFloat] {
         [red, green, blue, alpha]
     }
 
     /// The RGB components as an array [red, green, blue].
     @inlinable
-    public var rgbComponents: [Float] {
+    public var rgbComponents: [CGFloat] {
         [red, green, blue]
     }
 
@@ -203,14 +203,14 @@ extension Color {
 extension Color {
     /// The hue component (0-1).
     @inlinable
-    public var hue: Float {
+    public var hue: CGFloat {
         let maxC = max(red, max(green, blue))
         let minC = min(red, min(green, blue))
         let delta = maxC - minC
 
         guard delta > 0 else { return 0 }
 
-        var h: Float
+        var h: CGFloat
         if maxC == red {
             h = (green - blue) / delta
             if h < 0 { h += 6 }
@@ -225,7 +225,7 @@ extension Color {
 
     /// The saturation component (0-1).
     @inlinable
-    public var saturation: Float {
+    public var saturation: CGFloat {
         let maxC = max(red, max(green, blue))
         let minC = min(red, min(green, blue))
         guard maxC > 0 else { return 0 }
@@ -234,13 +234,13 @@ extension Color {
 
     /// The brightness component (0-1).
     @inlinable
-    public var brightness: Float {
+    public var brightness: CGFloat {
         max(red, max(green, blue))
     }
 
     /// The luminance according to the sRGB color space.
     @inlinable
-    public var luminance: Float {
+    public var luminance: CGFloat {
         0.2126 * red + 0.7152 * green + 0.0722 * blue
     }
 }
@@ -250,7 +250,7 @@ extension Color {
 extension Color {
     /// Returns a new color with the alpha component changed.
     @inlinable
-    public func withAlpha(_ alpha: Float) -> Color {
+    public func withAlpha(_ alpha: CGFloat) -> Color {
         Color(red: red, green: green, blue: blue, alpha: alpha)
     }
 
@@ -258,7 +258,7 @@ extension Color {
     ///
     /// - Parameter amount: How much to lighten (0-1). Default is 0.2.
     @inlinable
-    public func lighter(by amount: Float = 0.2) -> Color {
+    public func lighter(by amount: CGFloat = 0.2) -> Color {
         Color(
             red: min(1, red + amount),
             green: min(1, green + amount),
@@ -271,7 +271,7 @@ extension Color {
     ///
     /// - Parameter amount: How much to darken (0-1). Default is 0.2.
     @inlinable
-    public func darker(by amount: Float = 0.2) -> Color {
+    public func darker(by amount: CGFloat = 0.2) -> Color {
         Color(
             red: max(0, red - amount),
             green: max(0, green - amount),
@@ -282,7 +282,7 @@ extension Color {
 
     /// Returns the color with adjusted saturation.
     @inlinable
-    public func saturated(by multiplier: Float) -> Color {
+    public func saturated(by multiplier: CGFloat) -> Color {
         Color(
             hue: hue,
             saturation: min(1, max(0, saturation * multiplier)),
@@ -309,7 +309,7 @@ extension Color {
 extension Color {
     /// Returns a color interpolated between two colors.
     @inlinable
-    public static func lerp(from start: Color, to end: Color, t: Float) -> Color {
+    public static func lerp(from start: Color, to end: Color, t: CGFloat) -> Color {
         Color(
             red: start.red + (end.red - start.red) * t,
             green: start.green + (end.green - start.green) * t,
@@ -358,7 +358,7 @@ extension Color {
 
     /// Creates a color from premultiplied alpha components.
     @inlinable
-    public static func fromPremultiplied(red: Float, green: Float, blue: Float, alpha: Float) -> Color {
+    public static func fromPremultiplied(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) -> Color {
         guard alpha > 0 else { return .clear }
         return Color(red: red / alpha, green: green / alpha, blue: blue / alpha, alpha: alpha)
     }
@@ -381,10 +381,10 @@ extension Color: CustomStringConvertible {
 extension Color: Codable {
     public init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
-        red = try container.decode(Float.self)
-        green = try container.decode(Float.self)
-        blue = try container.decode(Float.self)
-        alpha = try container.decodeIfPresent(Float.self) ?? 1
+        red = try container.decode(CGFloat.self)
+        green = try container.decode(CGFloat.self)
+        blue = try container.decode(CGFloat.self)
+        alpha = try container.decodeIfPresent(CGFloat.self) ?? 1
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -414,16 +414,16 @@ extension Color {
 
         if components.count == 4 {
             self.init(
-                red: Float(components[0]),
-                green: Float(components[1]),
-                blue: Float(components[2]),
-                alpha: Float(components[3])
+                red: CGFloat(components[0]),
+                green: CGFloat(components[1]),
+                blue: CGFloat(components[2]),
+                alpha: CGFloat(components[3])
             )
         } else {
             self.init(
-                red: Float(components[0]),
-                green: Float(components[1]),
-                blue: Float(components[2]),
+                red: CGFloat(components[0]),
+                green: CGFloat(components[1]),
+                blue: CGFloat(components[2]),
                 alpha: 1
             )
         }

@@ -33,7 +33,7 @@ public final class SNTransition: Sendable {
     // MARK: - Properties
 
     /// The duration of the transition in seconds.
-    public let duration: Float
+    public let duration: CGFloat
 
     /// The type of transition effect.
     public let type: TransitionType
@@ -48,7 +48,7 @@ public final class SNTransition: Sendable {
 
     private init(
         type: TransitionType,
-        duration: Float,
+        duration: CGFloat,
         pausesIncomingScene: Bool = true,
         pausesOutgoingScene: Bool = true
     ) {
@@ -64,7 +64,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func crossFade(duration: Float) -> SNTransition {
+    public static func crossFade(duration: CGFloat) -> SNTransition {
         SNTransition(type: .crossFade, duration: duration)
     }
 
@@ -72,7 +72,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func fade(duration: Float) -> SNTransition {
+    public static func fade(duration: CGFloat) -> SNTransition {
         SNTransition(type: .fadeWithBlack, duration: duration)
     }
 
@@ -82,7 +82,7 @@ public final class SNTransition: Sendable {
     ///   - color: The intermediate color.
     ///   - duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func fade(with color: Color, duration: Float) -> SNTransition {
+    public static func fade(with color: Color, duration: CGFloat) -> SNTransition {
         SNTransition(type: .fade(color: color), duration: duration)
     }
 
@@ -92,7 +92,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func flipHorizontal(duration: Float) -> SNTransition {
+    public static func flipHorizontal(duration: CGFloat) -> SNTransition {
         SNTransition(type: .flipHorizontal, duration: duration)
     }
 
@@ -100,7 +100,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func flipVertical(duration: Float) -> SNTransition {
+    public static func flipVertical(duration: CGFloat) -> SNTransition {
         SNTransition(type: .flipVertical, duration: duration)
     }
 
@@ -110,7 +110,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func doorway(duration: Float) -> SNTransition {
+    public static func doorway(duration: CGFloat) -> SNTransition {
         SNTransition(type: .doorway, duration: duration)
     }
 
@@ -118,7 +118,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func doorsOpenHorizontal(duration: Float) -> SNTransition {
+    public static func doorsOpenHorizontal(duration: CGFloat) -> SNTransition {
         SNTransition(type: .doorsOpenHorizontal, duration: duration)
     }
 
@@ -126,7 +126,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func doorsOpenVertical(duration: Float) -> SNTransition {
+    public static func doorsOpenVertical(duration: CGFloat) -> SNTransition {
         SNTransition(type: .doorsOpenVertical, duration: duration)
     }
 
@@ -134,7 +134,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func doorsCloseHorizontal(duration: Float) -> SNTransition {
+    public static func doorsCloseHorizontal(duration: CGFloat) -> SNTransition {
         SNTransition(type: .doorsCloseHorizontal, duration: duration)
     }
 
@@ -142,7 +142,7 @@ public final class SNTransition: Sendable {
     ///
     /// - Parameter duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func doorsCloseVertical(duration: Float) -> SNTransition {
+    public static func doorsCloseVertical(duration: CGFloat) -> SNTransition {
         SNTransition(type: .doorsCloseVertical, duration: duration)
     }
 
@@ -154,7 +154,7 @@ public final class SNTransition: Sendable {
     ///   - direction: The direction of the transition.
     ///   - duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func moveIn(with direction: TransitionDirection, duration: Float) -> SNTransition {
+    public static func moveIn(with direction: TransitionDirection, duration: CGFloat) -> SNTransition {
         SNTransition(type: .moveIn(direction: direction), duration: duration)
     }
 
@@ -164,7 +164,7 @@ public final class SNTransition: Sendable {
     ///   - direction: The direction of the transition.
     ///   - duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func push(with direction: TransitionDirection, duration: Float) -> SNTransition {
+    public static func push(with direction: TransitionDirection, duration: CGFloat) -> SNTransition {
         SNTransition(type: .push(direction: direction), duration: duration)
     }
 
@@ -174,7 +174,7 @@ public final class SNTransition: Sendable {
     ///   - direction: The direction of the transition.
     ///   - duration: The duration in seconds.
     /// - Returns: A transition object.
-    public static func reveal(with direction: TransitionDirection, duration: Float) -> SNTransition {
+    public static func reveal(with direction: TransitionDirection, duration: CGFloat) -> SNTransition {
         SNTransition(type: .reveal(direction: direction), duration: duration)
     }
 }

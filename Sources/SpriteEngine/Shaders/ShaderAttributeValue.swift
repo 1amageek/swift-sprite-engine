@@ -20,12 +20,12 @@ public final class SNAttributeValue {
 
     // MARK: - Value Storage
 
-    private var floatStorage: [Float] = []
+    private var floatStorage: [CGFloat] = []
 
     // MARK: - Float Accessors
 
     /// The attribute value as a single float.
-    public var floatValue: Float {
+    public var floatValue: CGFloat {
         get { floatStorage.first ?? 0 }
         set {
             type = .float
@@ -34,7 +34,7 @@ public final class SNAttributeValue {
     }
 
     /// The attribute value as a 2-component float vector.
-    public var vectorFloat2Value: (Float, Float) {
+    public var vectorFloat2Value: (CGFloat, CGFloat) {
         get {
             guard floatStorage.count >= 2 else { return (0, 0) }
             return (floatStorage[0], floatStorage[1])
@@ -46,7 +46,7 @@ public final class SNAttributeValue {
     }
 
     /// The attribute value as a 3-component float vector.
-    public var vectorFloat3Value: (Float, Float, Float) {
+    public var vectorFloat3Value: (CGFloat, CGFloat, CGFloat) {
         get {
             guard floatStorage.count >= 3 else { return (0, 0, 0) }
             return (floatStorage[0], floatStorage[1], floatStorage[2])
@@ -58,7 +58,7 @@ public final class SNAttributeValue {
     }
 
     /// The attribute value as a 4-component float vector.
-    public var vectorFloat4Value: (Float, Float, Float, Float) {
+    public var vectorFloat4Value: (CGFloat, CGFloat, CGFloat, CGFloat) {
         get {
             guard floatStorage.count >= 4 else { return (0, 0, 0, 0) }
             return (floatStorage[0], floatStorage[1], floatStorage[2], floatStorage[3])
@@ -72,7 +72,7 @@ public final class SNAttributeValue {
     // MARK: - Raw Data Access
 
     /// Returns the raw float data for GPU upload.
-    public var floatData: [Float] {
+    public var floatData: [CGFloat] {
         floatStorage
     }
 
@@ -81,7 +81,7 @@ public final class SNAttributeValue {
     /// Creates an attribute value with a float.
     ///
     /// - Parameter float: The float value.
-    public init(float: Float) {
+    public init(float: CGFloat) {
         self.type = .float
         self.floatStorage = [float]
     }
@@ -89,7 +89,7 @@ public final class SNAttributeValue {
     /// Creates an attribute value with a 2-component float vector.
     ///
     /// - Parameter vectorFloat2: The 2-component vector.
-    public init(vectorFloat2: (Float, Float)) {
+    public init(vectorFloat2: (CGFloat, CGFloat)) {
         self.type = .vectorFloat2
         self.floatStorage = [vectorFloat2.0, vectorFloat2.1]
     }
@@ -97,7 +97,7 @@ public final class SNAttributeValue {
     /// Creates an attribute value with a 3-component float vector.
     ///
     /// - Parameter vectorFloat3: The 3-component vector.
-    public init(vectorFloat3: (Float, Float, Float)) {
+    public init(vectorFloat3: (CGFloat, CGFloat, CGFloat)) {
         self.type = .vectorFloat3
         self.floatStorage = [vectorFloat3.0, vectorFloat3.1, vectorFloat3.2]
     }
@@ -105,7 +105,7 @@ public final class SNAttributeValue {
     /// Creates an attribute value with a 4-component float vector.
     ///
     /// - Parameter vectorFloat4: The 4-component vector.
-    public init(vectorFloat4: (Float, Float, Float, Float)) {
+    public init(vectorFloat4: (CGFloat, CGFloat, CGFloat, CGFloat)) {
         self.type = .vectorFloat4
         self.floatStorage = [vectorFloat4.0, vectorFloat4.1, vectorFloat4.2, vectorFloat4.3]
     }

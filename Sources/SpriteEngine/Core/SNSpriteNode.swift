@@ -14,18 +14,18 @@
 /// ```swift
 /// // From image name (recommended, SpriteKit-style)
 /// let player = SNSpriteNode(imageNamed: "player.png")
-/// player.position = Point(x: 400, y: 300)
+/// player.position = CGPoint(x: 400, y: 300)
 ///
 /// // From texture object
 /// let texture = SNTexture(imageNamed: "enemy.png")
 /// let enemy = SNSpriteNode(texture: texture)
 ///
 /// // Solid color rectangle
-/// let healthBar = SNSpriteNode(color: .red, size: Size(width: 100, height: 10))
+/// let healthBar = SNSpriteNode(color: .red, size: CGSize(width: 100, height: 10))
 ///
 /// // Empty sprite (configure later)
 /// let sprite = SNSpriteNode()
-/// sprite.size = Size(width: 50, height: 50)
+/// sprite.size = CGSize(width: 50, height: 50)
 /// sprite.color = .blue
 /// ```
 ///
@@ -63,11 +63,11 @@ open class SNSpriteNode: SNNode, SNWarpable {
     // MARK: - Size and Anchor
 
     /// The dimensions of the sprite in points.
-    public var size: Size = .zero
+    public var size: CGSize = .zero
 
     /// The point within the sprite that corresponds to its position.
     /// Range: (0, 0) to (1, 1). Default: (0.5, 0.5) for center.
-    public var anchorPoint: Point = Point(x: 0.5, y: 0.5)
+    public var anchorPoint: CGPoint = CGPoint(x: 0.5, y: 0.5)
 
     // MARK: - Color and Blending
 
@@ -79,7 +79,7 @@ open class SNSpriteNode: SNNode, SNWarpable {
     /// How much the color blends with the texture.
     /// Range: 0 (texture only) to 1 (color only).
     /// At 0.5, texture and color are equally blended.
-    public var colorBlendFactor: Float = 0
+    public var colorBlendFactor: CGFloat = 0
 
     /// The blend mode used to draw the sprite into the framebuffer.
     ///
@@ -108,10 +108,10 @@ open class SNSpriteNode: SNNode, SNWarpable {
     /// ```swift
     /// // Create a button that stretches in the middle
     /// let button = SNSpriteNode(imageNamed: "button.png")
-    /// button.centerRect = Rect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
-    /// button.size = Size(width: 200, height: 50)  // Corners won't stretch
+    /// button.centerRect = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+    /// button.size = CGSize(width: 200, height: 50)  // Corners won't stretch
     /// ```
-    public var centerRect: Rect = Rect(x: 0, y: 0, width: 1, height: 1)
+    public var centerRect: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
 
     // MARK: - Shader
 
@@ -210,7 +210,7 @@ open class SNSpriteNode: SNNode, SNWarpable {
     /// - Parameters:
     ///   - texture: The texture to display.
     ///   - size: The size of the sprite in points.
-    public init(texture: SNTexture, size: Size) {
+    public init(texture: SNTexture, size: CGSize) {
         super.init()
         self.texture = texture
         self.size = size
@@ -226,7 +226,7 @@ open class SNSpriteNode: SNNode, SNWarpable {
     ///   - texture: The texture to display, or `nil` for a solid color sprite.
     ///   - color: The tint color to apply.
     ///   - size: The size of the sprite in points.
-    public init(texture: SNTexture?, color: Color, size: Size) {
+    public init(texture: SNTexture?, color: Color, size: CGSize) {
         super.init()
         self.texture = texture
         self.color = color
@@ -254,7 +254,7 @@ open class SNSpriteNode: SNNode, SNWarpable {
     /// - Parameters:
     ///   - color: The fill color.
     ///   - size: The dimensions of the sprite.
-    public init(color: Color, size: Size) {
+    public init(color: Color, size: CGSize) {
         super.init()
         self.color = color
         self.size = size
@@ -264,10 +264,10 @@ open class SNSpriteNode: SNNode, SNWarpable {
     // MARK: - Frame
 
     /// Returns the bounding rectangle in parent coordinates.
-    open override var frame: Rect {
+    open override var frame: CGRect {
         let offsetX = size.width * anchorPoint.x
         let offsetY = size.height * anchorPoint.y
-        return Rect(
+        return CGRect(
             x: position.x - offsetX,
             y: position.y - offsetY,
             width: size.width,
@@ -325,8 +325,8 @@ open class SNSpriteNode: SNNode, SNWarpable {
 extension SNSpriteNode {
     /// Sets the size to match a square with the given side length.
     @inlinable
-    public func setSize(square side: Float) {
-        size = Size(width: side, height: side)
+    public func setSize(square side: CGFloat) {
+        size = CGSize(width: side, height: side)
     }
 
     /// Scales the sprite to the specified size.
@@ -336,9 +336,9 @@ extension SNSpriteNode {
     /// current `size` property.
     ///
     /// - Parameter targetSize: The target size for the sprite.
-    public func scale(to targetSize: Size) {
+    public func scale(to targetSize: CGSize) {
         guard size.width > 0 && size.height > 0 else { return }
-        scale = Size(
+        scale = CGSize(
             width: targetSize.width / size.width,
             height: targetSize.height / size.height
         )
@@ -347,25 +347,25 @@ extension SNSpriteNode {
     /// Centers the anchor point (0.5, 0.5).
     @inlinable
     public func centerAnchor() {
-        anchorPoint = Point(x: 0.5, y: 0.5)
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
     }
 
     /// Sets the anchor point to the bottom-left (0, 0).
     @inlinable
     public func anchorBottomLeft() {
-        anchorPoint = Point(x: 0, y: 0)
+        anchorPoint = CGPoint(x: 0, y: 0)
     }
 
     /// Sets the anchor point to the bottom-center (0.5, 0).
     @inlinable
     public func anchorBottomCenter() {
-        anchorPoint = Point(x: 0.5, y: 0)
+        anchorPoint = CGPoint(x: 0.5, y: 0)
     }
 
     /// Sets the anchor point to the top-left (0, 1).
     @inlinable
     public func anchorTopLeft() {
-        anchorPoint = Point(x: 0, y: 1)
+        anchorPoint = CGPoint(x: 0, y: 1)
     }
 }
 

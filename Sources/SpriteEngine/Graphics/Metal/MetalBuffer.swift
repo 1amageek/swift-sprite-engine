@@ -40,7 +40,7 @@ public final class MetalBuffer: GraphicsBuffer, @unchecked Sendable {
         }
 
         let pointer = mtlBuffer.contents().advanced(by: offset)
-        data.withUnsafeBytes { bytes in
+        _ = data.withUnsafeBytes { bytes in
             memcpy(pointer, bytes.baseAddress, data.count)
         }
 
@@ -97,7 +97,7 @@ public final class MetalBuffer: GraphicsBuffer, @unchecked Sendable {
         guard offset + size <= length else { return }
 
         let pointer = mtlBuffer.contents().advanced(by: offset)
-        values.withUnsafeBytes { bytes in
+        _ = values.withUnsafeBytes { bytes in
             memcpy(pointer, bytes.baseAddress, size)
         }
 

@@ -119,7 +119,7 @@ public final class SNTexture: @unchecked Sendable {
         // Native: Generate new texture ID for cropped CGImage
         let newID = TextureID(rawValue: SNTexture.getAndIncrementNativeID())
 
-        self.init(name: "\(texture.name)#\(rect.x),\(rect.y)", textureID: newID)
+        self.init(name: "\(texture.name)#\(rect.minX),\(rect.minY)", textureID: newID)
         self._textureRect = rect
         self.sourceTexture = texture
         self.filteringMode = texture.filteringMode
@@ -134,14 +134,14 @@ public final class SNTexture: @unchecked Sendable {
             let imgWidth = CGFloat(sourceCGImage.width)
             let imgHeight = CGFloat(sourceCGImage.height)
             let cropRect = CGRect(
-                x: CGFloat(rect.x) * imgWidth,
-                y: CGFloat(rect.y) * imgHeight,
-                width: CGFloat(rect.width) * imgWidth,
-                height: CGFloat(rect.height) * imgHeight
+                x: rect.minX * imgWidth,
+                y: rect.minY * imgHeight,
+                width: rect.width * imgWidth,
+                height: rect.height * imgHeight
             )
             if let cropped = sourceCGImage.cropping(to: cropRect) {
                 self._cgImage = cropped
-                self._size = Size(width: Float(cropped.width), height: Float(cropped.height))
+                self._size = Size(width: CGFloat(cropped.width), height: CGFloat(cropped.height))
                 // Register in cache for PreviewRenderer (thread-safe)
                 SNTexture.setCachedImage(cropped, for: newID)
             }
@@ -162,7 +162,7 @@ public final class SNTexture: @unchecked Sendable {
         let id = TextureID(rawValue: SNTexture.getAndIncrementNativeID())
         self.init(name: "cgimage-\(id.rawValue)", textureID: id)
         self._cgImage = cgImage
-        self._size = Size(width: Float(cgImage.width), height: Float(cgImage.height))
+        self._size = Size(width: CGFloat(cgImage.width), height: CGFloat(cgImage.height))
         // Store in cache for Preview rendering lookup (thread-safe)
         SNTexture.setCachedImage(cgImage, for: id)
     }
@@ -246,7 +246,7 @@ public final class SNTexture: @unchecked Sendable {
     ///   - u: The horizontal coordinate (0-1).
     ///   - v: The vertical coordinate (0-1).
     /// - Returns: The color at the specified coordinate as (r, g, b, a) in range [0, 1].
-    public func sampleColor(u: Float, v: Float) -> (r: Float, g: Float, b: Float, a: Float) {
+    public func sampleColor(u: CGFloat, v: CGFloat) -> (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) {
         #if arch(wasm32)
         // WASM: Return neutral value (JavaScript handles actual sampling)
         return (0.5, 0.5, 0, 1)
@@ -275,7 +275,7 @@ public final class SNTexture: @unchecked Sendable {
     ///   - smoothness: Controls the smoothness of the normal map (0 to 1).
     ///   - contrast: Controls the contrast of height differences.
     /// - Returns: A new texture containing the normal map.
-    public func generatingNormalMap(withSmoothness smoothness: Float, contrast: Float) -> SNTexture {
+    public func generatingNormalMap(withSmoothness smoothness: CGFloat, contrast: CGFloat) -> SNTexture {
         // Placeholder implementation - returns self
         // Full normal map generation would require image processing
         return self
@@ -283,7 +283,7 @@ public final class SNTexture: @unchecked Sendable {
 
     #if canImport(CoreGraphics) && !arch(wasm32)
     /// Samples color from CGImage at UV coordinate.
-    private func sampleColorFromCGImage(u: Float, v: Float) -> (r: Float, g: Float, b: Float, a: Float) {
+    private func sampleColorFromCGImage(u: CGFloat, v: CGFloat) -> (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) {
         // Ensure image is loaded
         loadFromBundleIfNeeded()
 
@@ -299,8 +299,8 @@ public final class SNTexture: @unchecked Sendable {
         let clampedV = max(0, min(1, v))
 
         // Convert UV to pixel coordinates (flip V for bottom-left origin)
-        let pixelX = Int(clampedU * Float(width - 1))
-        let pixelY = Int((1 - clampedV) * Float(height - 1))
+        let pixelX = Int(clampedU * CGFloat(width - 1))
+        let pixelY = Int((1 - clampedV) * CGFloat(height - 1))
 
         // Create a bitmap context to read pixel data
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -322,10 +322,10 @@ public final class SNTexture: @unchecked Sendable {
         context.draw(cgImage, in: CGRect(x: -CGFloat(pixelX), y: -CGFloat(pixelY), width: CGFloat(width), height: CGFloat(height)))
 
         // Convert to normalized values
-        let r = Float(pixelData[0]) / 255.0
-        let g = Float(pixelData[1]) / 255.0
-        let b = Float(pixelData[2]) / 255.0
-        let a = Float(pixelData[3]) / 255.0
+        let r = CGFloat(pixelData[0]) / 255.0
+        let g = CGFloat(pixelData[1]) / 255.0
+        let b = CGFloat(pixelData[2]) / 255.0
+        let a = CGFloat(pixelData[3]) / 255.0
 
         // Unpremultiply if alpha is not zero
         if a > 0 {
@@ -385,7 +385,7 @@ public final class SNTexture: @unchecked Sendable {
         }
 
         _cgImage = image
-        _size = Size(width: Float(image.width), height: Float(image.height))
+        _size = Size(width: CGFloat(image.width), height: CGFloat(image.height))
 
         // Store in cache for Preview rendering lookup (thread-safe)
         SNTexture.setCachedImage(image, for: textureID)
@@ -448,8 +448,8 @@ extension SNTexture: Hashable {
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(name)
-        hasher.combine(_textureRect.x)
-        hasher.combine(_textureRect.y)
+        hasher.combine(_textureRect.minX)
+        hasher.combine(_textureRect.minY)
     }
 }
 

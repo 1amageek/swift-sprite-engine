@@ -258,7 +258,7 @@ public struct ColorWriteMask: OptionSet, Sendable {
     public static let blue = ColorWriteMask(rawValue: 1 << 2)
     public static let alpha = ColorWriteMask(rawValue: 1 << 3)
     public static let all: ColorWriteMask = [.red, .green, .blue, .alpha]
-    public static let none = ColorWriteMask(rawValue: 0)
+    public static let noChannels = ColorWriteMask([])
 }
 
 // MARK: - Primitive Topology

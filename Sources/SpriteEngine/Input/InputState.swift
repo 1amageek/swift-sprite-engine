@@ -62,8 +62,8 @@ public struct InputState: Equatable, Sendable {
     /// Returns a normalized direction vector from WASD/arrow inputs.
     /// Returns zero vector if no direction is pressed.
     public var direction: Vector2 {
-        var dx: Float = 0
-        var dy: Float = 0
+        var dx: CGFloat = 0
+        var dy: CGFloat = 0
 
         if left { dx -= 1 }
         if right { dx += 1 }

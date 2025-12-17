@@ -87,8 +87,8 @@ public func wisp_tick(_ deltaTime: Float) {
     // Read input from JavaScript
     let input = readInputFromJS()
 
-    // Update game logic
-    gameLoop.tick(realDeltaTime: deltaTime, input: input)
+    // Update game logic (convert Float to CGFloat for internal logic)
+    gameLoop.tick(realDeltaTime: CGFloat(deltaTime), input: input)
 
     // Generate draw commands
     let commands = gameLoop.generateDrawCommands()
@@ -122,13 +122,13 @@ public func wisp_resize(_ width: Int32, _ height: Int32) {
 @_expose(wasm, "wisp_getSceneWidth")
 @_cdecl("wisp_getSceneWidth")
 public func wisp_getSceneWidth() -> Float {
-    return gameLoop.scene?.size.width ?? 0
+    return Float(gameLoop.scene?.size.width ?? 0)
 }
 
 @_expose(wasm, "wisp_getSceneHeight")
 @_cdecl("wisp_getSceneHeight")
 public func wisp_getSceneHeight() -> Float {
-    return gameLoop.scene?.size.height ?? 0
+    return Float(gameLoop.scene?.size.height ?? 0)
 }
 
 /// Pause/unpause the game.
@@ -163,7 +163,7 @@ private func readInputFromJS() -> InputState {
     input.pointerDown = jsInput.pointerDown.boolean ?? false
 
     if let px = jsInput.pointerX.number, let py = jsInput.pointerY.number {
-        input.pointerPosition = Point(x: Float(px), y: Float(py))
+        input.pointerPosition = Point(x: CGFloat(px), y: CGFloat(py))
     }
 
     input.pointerJustPressed = jsInput.pointerJustPressed.boolean ?? false
@@ -186,7 +186,7 @@ private func readInputFromJS() -> InputState {
 public func wisp_onTextureLoaded(_ textureId: UInt32, _ width: Int32, _ height: Int32) {
     // Update SNTexture size cache so that SNTexture.size returns correct value
     let textureID = TextureID(rawValue: textureId)
-    let size = Size(width: Float(width), height: Float(height))
+    let size = Size(width: CGFloat(width), height: CGFloat(height))
     SNTexture.updateSizeCache(textureID: textureID, size: size)
 
     // Get the ImageBitmap from JavaScript
@@ -271,27 +271,27 @@ public struct DrawCommandBuffer {
     public var zPosition: Float
 
     internal init(from command: DrawCommand) {
-        self.worldPositionX = command.worldPosition.x
-        self.worldPositionY = command.worldPosition.y
-        self.worldRotation = command.worldRotation
-        self.worldScaleX = command.worldScale.width
-        self.worldScaleY = command.worldScale.height
-        self.sizeWidth = command.size.width
-        self.sizeHeight = command.size.height
-        self.anchorPointX = command.anchorPoint.x
-        self.anchorPointY = command.anchorPoint.y
+        self.worldPositionX = Float(command.worldPosition.x)
+        self.worldPositionY = Float(command.worldPosition.y)
+        self.worldRotation = Float(command.worldRotation)
+        self.worldScaleX = Float(command.worldScale.width)
+        self.worldScaleY = Float(command.worldScale.height)
+        self.sizeWidth = Float(command.size.width)
+        self.sizeHeight = Float(command.size.height)
+        self.anchorPointX = Float(command.anchorPoint.x)
+        self.anchorPointY = Float(command.anchorPoint.y)
         self.textureID = command.textureID.rawValue
-        self.textureRectX = command.textureRect.origin.x
-        self.textureRectY = command.textureRect.origin.y
-        self.textureRectW = command.textureRect.size.width
-        self.textureRectH = command.textureRect.size.height
+        self.textureRectX = Float(command.textureRect.origin.x)
+        self.textureRectY = Float(command.textureRect.origin.y)
+        self.textureRectW = Float(command.textureRect.size.width)
+        self.textureRectH = Float(command.textureRect.size.height)
         self.filteringMode = UInt32(command.filteringMode.rawValue)
         self.usesMipmaps = command.usesMipmaps ? 1 : 0
-        self.colorR = command.color.red
-        self.colorG = command.color.green
-        self.colorB = command.color.blue
-        self.colorA = command.color.alpha
-        self.alpha = command.alpha
-        self.zPosition = command.zPosition
+        self.colorR = Float(command.color.red)
+        self.colorG = Float(command.color.green)
+        self.colorB = Float(command.color.blue)
+        self.colorA = Float(command.color.alpha)
+        self.alpha = Float(command.alpha)
+        self.zPosition = Float(command.zPosition)
     }
 }

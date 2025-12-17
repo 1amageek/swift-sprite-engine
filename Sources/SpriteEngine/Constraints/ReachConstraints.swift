@@ -23,19 +23,19 @@ public struct ReachConstraints: Hashable, Sendable {
     /// The minimum angle in radians.
     ///
     /// The node cannot rotate below this angle during IK solving.
-    public var lowerAngleLimit: Float
+    public var lowerAngleLimit: CGFloat
 
     /// The maximum angle in radians.
     ///
     /// The node cannot rotate above this angle during IK solving.
-    public var upperAngleLimit: Float
+    public var upperAngleLimit: CGFloat
 
     /// Creates reach constraints with the specified angle limits.
     ///
     /// - Parameters:
     ///   - lowerAngleLimit: The minimum angle in radians.
     ///   - upperAngleLimit: The maximum angle in radians.
-    public init(lowerAngleLimit: Float, upperAngleLimit: Float) {
+    public init(lowerAngleLimit: CGFloat, upperAngleLimit: CGFloat) {
         self.lowerAngleLimit = lowerAngleLimit
         self.upperAngleLimit = upperAngleLimit
     }
@@ -45,18 +45,18 @@ public struct ReachConstraints: Hashable, Sendable {
     /// - Parameters:
     ///   - lowerAngleDegrees: The minimum angle in degrees.
     ///   - upperAngleDegrees: The maximum angle in degrees.
-    public init(lowerAngleDegrees: Float, upperAngleDegrees: Float) {
+    public init(lowerAngleDegrees: CGFloat, upperAngleDegrees: CGFloat) {
         self.lowerAngleLimit = lowerAngleDegrees * .pi / 180
         self.upperAngleLimit = upperAngleDegrees * .pi / 180
     }
 
     /// The angular range of motion.
-    public var range: Float {
+    public var range: CGFloat {
         upperAngleLimit - lowerAngleLimit
     }
 
     /// The center angle of the range.
-    public var centerAngle: Float {
+    public var centerAngle: CGFloat {
         (lowerAngleLimit + upperAngleLimit) / 2
     }
 
@@ -64,7 +64,7 @@ public struct ReachConstraints: Hashable, Sendable {
     ///
     /// - Parameter angle: The angle to clamp.
     /// - Returns: The clamped angle.
-    public func clamp(_ angle: Float) -> Float {
+    public func clamp(_ angle: CGFloat) -> CGFloat {
         max(lowerAngleLimit, min(upperAngleLimit, angle))
     }
 
@@ -72,7 +72,7 @@ public struct ReachConstraints: Hashable, Sendable {
     ///
     /// - Parameter angle: The angle to check.
     /// - Returns: `true` if the angle is within the allowed range.
-    public func contains(_ angle: Float) -> Bool {
+    public func contains(_ angle: CGFloat) -> Bool {
         angle >= lowerAngleLimit && angle <= upperAngleLimit
     }
 }
@@ -121,8 +121,8 @@ extension ReachConstraints: CustomStringConvertible {
 extension ReachConstraints: Codable {
     public init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
-        lowerAngleLimit = try container.decode(Float.self)
-        upperAngleLimit = try container.decode(Float.self)
+        lowerAngleLimit = try container.decode(CGFloat.self)
+        upperAngleLimit = try container.decode(CGFloat.self)
     }
 
     public func encode(to encoder: Encoder) throws {

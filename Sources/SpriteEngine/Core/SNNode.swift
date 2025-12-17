@@ -12,10 +12,10 @@
 /// ## Example
 /// ```swift
 /// let container = SNNode()
-/// container.position = Point(x: 100, y: 100)
+/// container.position = CGPoint(x: 100, y: 100)
 ///
-/// let sprite = SNSpriteNode(color: .red, size: Size(width: 50, height: 50))
-/// sprite.position = Point(x: 50, y: 0)  // Offset from container
+/// let sprite = SNSpriteNode(color: .red, size: CGSize(width: 50, height: 50))
+/// sprite.position = CGPoint(x: 50, y: 0)  // Offset from container
 /// container.addChild(sprite)
 ///
 /// scene.addChild(container)
@@ -40,26 +40,26 @@ open class SNNode {
     // MARK: - Spatial Properties
 
     /// The position of the node in its parent's coordinate system.
-    public var position: Point = .zero
+    public var position: CGPoint = .zero
 
     /// The rotation about the z-axis in radians.
     /// Positive values rotate counter-clockwise.
-    public var rotation: Float = 0
+    public var rotation: CGFloat = 0
 
     /// A scaling factor that multiplies the size of the node and its descendants.
     /// Negative values flip the node.
-    public var scale: Size = Size(width: 1, height: 1)
+    public var scale: CGSize = CGSize(width: 1, height: 1)
 
     /// The height of the node relative to its parent, used for draw ordering.
     /// Higher values are drawn on top of lower values.
-    public var zPosition: Float = 0
+    public var zPosition: CGFloat = 0
 
     // MARK: - Appearance
 
     /// The transparency of the node.
     /// Range: 0 (invisible) to 1 (fully opaque).
     /// Multiplied with parent's alpha for final opacity.
-    public var alpha: Float = 1
+    public var alpha: CGFloat = 1
 
     /// Controls whether the node and its descendants are rendered.
     /// Hidden nodes still participate in update cycles.
@@ -116,7 +116,7 @@ open class SNNode {
     /// The default value is 1.0, which means actions run at normal speed.
     /// A value of 2.0 runs actions twice as fast, while 0.5 runs at half speed.
     /// Setting to 0 effectively pauses all actions on this node.
-    public var speed: Float = 1.0
+    public var speed: CGFloat = 1.0
 
     /// Whether this node has any running actions.
     public var hasActions: Bool {
@@ -331,47 +331,46 @@ open class SNNode {
     // MARK: - World Transform
 
     /// The position in world coordinates.
-    public var worldPosition: Point {
+    public var worldPosition: CGPoint {
         guard let parent = parent else { return position }
         let parentWorld = parent.worldTransform
-        return parentWorld.transform(position)
+        return position.applying(parentWorld)
     }
 
     /// The rotation in world coordinates (accumulated from all ancestors).
-    public var worldRotation: Float {
+    public var worldRotation: CGFloat {
         guard let parent = parent else { return rotation }
         return parent.worldRotation + rotation
     }
 
     /// The scale in world coordinates (accumulated from all ancestors).
-    public var worldScale: Size {
+    public var worldScale: CGSize {
         guard let parent = parent else { return scale }
         let parentScale = parent.worldScale
-        return Size(
+        return CGSize(
             width: parentScale.width * scale.width,
             height: parentScale.height * scale.height
         )
     }
 
     /// The alpha in world coordinates (multiplied through the hierarchy).
-    public var worldAlpha: Float {
+    public var worldAlpha: CGFloat {
         guard let parent = parent else { return alpha }
         return parent.worldAlpha * alpha
     }
 
     /// The local transform matrix.
-    public var localTransform: AffineTransform {
-        var transform = AffineTransform.identity
-        transform = transform.translated(x: position.x, y: position.y)
-        transform = transform.rotated(by: rotation)
-        transform = transform.scaled(x: scale.width, y: scale.height)
-        return transform
+    public var localTransform: CGAffineTransform {
+        CGAffineTransform.identity
+            .translatedBy(x: position.x, y: position.y)
+            .rotated(by: rotation)
+            .scaledBy(x: scale.width, y: scale.height)
     }
 
     /// The world transform matrix (combined with all ancestors).
-    public var worldTransform: AffineTransform {
+    public var worldTransform: CGAffineTransform {
         guard let parent = parent else { return localTransform }
-        return parent.worldTransform.concatenated(with: localTransform)
+        return localTransform.concatenating(parent.worldTransform)
     }
 
     // MARK: - Frame Calculation
@@ -380,22 +379,22 @@ open class SNNode {
     ///
     /// The base implementation returns a zero-sized rectangle at the node's position.
     /// Subclasses like `SNSpriteNode` override this to return their actual bounds.
-    open var frame: Rect {
-        Rect(origin: position, size: .zero)
+    open var frame: CGRect {
+        CGRect(origin: position, size: .zero)
     }
 
     /// Returns a rectangle containing this node and all descendants.
-    public func calculateAccumulatedFrame() -> Rect {
+    public func calculateAccumulatedFrame() -> CGRect {
         var result = frame
 
         for child in children {
             let childFrame = child.calculateAccumulatedFrame()
             // Transform child frame to parent coordinates
-            let transformedOrigin = Point(
+            let transformedOrigin = CGPoint(
                 x: position.x + childFrame.origin.x,
                 y: position.y + childFrame.origin.y
             )
-            let transformedFrame = Rect(origin: transformedOrigin, size: childFrame.size)
+            let transformedFrame = CGRect(origin: transformedOrigin, size: childFrame.size)
             result = result.union(transformedFrame)
         }
 
@@ -410,11 +409,11 @@ open class SNNode {
     ///   - point: The point to convert.
     ///   - node: The node whose coordinate space the point is in.
     /// - Returns: The point in this node's coordinate space.
-    public func convert(_ point: Point, from node: SNNode) -> Point {
+    public func convert(_ point: CGPoint, from node: SNNode) -> CGPoint {
         // Convert to world, then to local
-        let worldPoint = node.worldTransform.transform(point)
-        guard let inverse = worldTransform.inverted() else { return worldPoint }
-        return inverse.transform(worldPoint)
+        let worldPoint = point.applying(node.worldTransform)
+        let inverse = worldTransform.inverted()
+        return worldPoint.applying(inverse)
     }
 
     /// Converts a point from this node's coordinate space to another node's coordinate space.
@@ -423,7 +422,7 @@ open class SNNode {
     ///   - point: The point to convert.
     ///   - node: The target node's coordinate space.
     /// - Returns: The point in the target node's coordinate space.
-    public func convert(_ point: Point, to node: SNNode) -> Point {
+    public func convert(_ point: CGPoint, to node: SNNode) -> CGPoint {
         node.convert(point, from: self)
     }
 
@@ -435,12 +434,12 @@ open class SNNode {
     /// The base implementation does nothing.
     ///
     /// - Parameter dt: The fixed timestep interval (typically 1/60 second).
-    open func update(dt: Float) {
+    open func update(dt: CGFloat) {
         // Base implementation does nothing
     }
 
     /// Recursively updates this node and all descendants.
-    internal func updateRecursive(dt: Float) {
+    internal func updateRecursive(dt: CGFloat) {
         update(dt: dt)
         for child in children {
             child.updateRecursive(dt: dt)

@@ -10,29 +10,29 @@ internal struct DrawCommand: Sendable {
     // MARK: - Transform (World Space)
 
     /// The position in world coordinates.
-    var worldPosition: Point
+    var worldPosition: CGPoint
 
     /// The rotation in radians.
-    var worldRotation: Float
+    var worldRotation: CGFloat
 
     /// The scale factors.
-    var worldScale: Size
+    var worldScale: CGSize
 
     // MARK: - Sprite Data
 
     /// The base size of the sprite in points.
-    var size: Size
+    var size: CGSize
 
     /// The anchor point determining which part of the sprite is at the position.
     /// Range: (0, 0) to (1, 1). Default: (0.5, 0.5) for center.
-    var anchorPoint: Point
+    var anchorPoint: CGPoint
 
     /// The texture identifier. `TextureID.none` (0) means solid color rendering.
     var textureID: TextureID
 
     /// The portion of the texture to sample from.
     /// Default: (0, 0, 1, 1) for the entire texture.
-    var textureRect: Rect
+    var textureRect: CGRect
 
     /// The texture filtering mode.
     var filteringMode: TextureFilteringMode
@@ -46,36 +46,36 @@ internal struct DrawCommand: Sendable {
     var color: Color
 
     /// The combined alpha value (sprite alpha * parent hierarchy alpha).
-    var alpha: Float
+    var alpha: CGFloat
 
     /// The z-position for draw ordering. Higher values are drawn on top.
-    var zPosition: Float
+    var zPosition: CGFloat
 
     /// The blend mode used to combine this sprite with the framebuffer.
     var blendMode: SNBlendMode
 
     /// The center rectangle for 9-part scaling.
     /// Default: (0, 0, 1, 1) means no 9-part scaling.
-    var centerRect: Rect
+    var centerRect: CGRect
 
     // MARK: - Initialization
 
     /// Creates a draw command with all properties specified.
     init(
-        worldPosition: Point = .zero,
-        worldRotation: Float = 0,
-        worldScale: Size = Size(width: 1, height: 1),
-        size: Size = .zero,
-        anchorPoint: Point = Point(x: 0.5, y: 0.5),
+        worldPosition: CGPoint = .zero,
+        worldRotation: CGFloat = 0,
+        worldScale: CGSize = CGSize(width: 1, height: 1),
+        size: CGSize = .zero,
+        anchorPoint: CGPoint = CGPoint(x: 0.5, y: 0.5),
         textureID: TextureID = .none,
-        textureRect: Rect = Rect(x: 0, y: 0, width: 1, height: 1),
+        textureRect: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1),
         filteringMode: TextureFilteringMode = .linear,
         usesMipmaps: Bool = false,
         color: Color = .white,
-        alpha: Float = 1,
-        zPosition: Float = 0,
+        alpha: CGFloat = 1,
+        zPosition: CGFloat = 0,
         blendMode: SNBlendMode = .alpha,
-        centerRect: Rect = Rect(x: 0, y: 0, width: 1, height: 1)
+        centerRect: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
     ) {
         self.worldPosition = worldPosition
         self.worldRotation = worldRotation
@@ -99,8 +99,8 @@ internal struct DrawCommand: Sendable {
 extension DrawCommand {
     /// The final rendered size (size * worldScale).
     @inlinable
-    var renderedSize: Size {
-        Size(
+    var renderedSize: CGSize {
+        CGSize(
             width: size.width * worldScale.width,
             height: size.height * worldScale.height
         )
@@ -108,11 +108,11 @@ extension DrawCommand {
 
     /// The bounding rectangle in world coordinates.
     @inlinable
-    var bounds: Rect {
+    var bounds: CGRect {
         let finalSize = renderedSize
         let offsetX = finalSize.width * anchorPoint.x
         let offsetY = finalSize.height * anchorPoint.y
-        return Rect(
+        return CGRect(
             x: worldPosition.x - offsetX,
             y: worldPosition.y - offsetY,
             width: finalSize.width,

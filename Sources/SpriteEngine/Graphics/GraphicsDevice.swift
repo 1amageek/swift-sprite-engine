@@ -132,7 +132,7 @@ extension GraphicsDevice {
     }
 
     /// Creates a buffer from Float array.
-    public func makeBuffer(floats: [Float], usage: BufferUsage = .vertex) -> (any GraphicsBuffer)? {
+    public func makeBuffer(floats: [CGFloat], usage: BufferUsage = .vertex) -> (any GraphicsBuffer)? {
         let data = floats.withUnsafeBytes { Array($0) }
         return makeBuffer(data: data, usage: usage)
     }

@@ -65,13 +65,13 @@ public final class SNFieldNode: SNNode {
         /// Applies magnetic force based on velocity and charge.
         case magnetic
         /// Applies random acceleration (smooth).
-        case noise(smoothness: Float, animationSpeed: Float)
+        case noise(smoothness: CGFloat, animationSpeed: CGFloat)
         /// Accelerates bodies toward the field node.
         case radialGravity
         /// Applies a spring-like force toward the field node.
         case spring
         /// Applies random acceleration (chaotic).
-        case turbulence(smoothness: Float, animationSpeed: Float)
+        case turbulence(smoothness: CGFloat, animationSpeed: CGFloat)
         /// Sets velocity based on a direction.
         case velocity(direction: Vector2)
         /// Sets velocity based on a texture (flow map).
@@ -89,11 +89,11 @@ public final class SNFieldNode: SNNode {
         /// Velocity of the physics body.
         public let velocity: Vector2
         /// Mass of the physics body.
-        public let mass: Float
+        public let mass: CGFloat
         /// Charge of the physics body.
-        public let charge: Float
+        public let charge: CGFloat
         /// Time since the last evaluation.
-        public let deltaTime: Float
+        public let deltaTime: CGFloat
     }
 
     // MARK: - Properties
@@ -113,26 +113,26 @@ public final class SNFieldNode: SNNode {
     public var region: Region?
 
     /// The minimum distance for distance-based calculations.
-    public var minimumRadius: Float = 0
+    public var minimumRadius: CGFloat = 0
 
     /// A mask defining which categories this field belongs to.
     public var categoryBitMask: UInt32 = 0xFFFFFFFF
 
     /// The strength of the field.
-    public var strength: Float = 1.0
+    public var strength: CGFloat = 1.0
 
     /// The rate of decay for field strength with distance.
     ///
     /// - 0: No decay (uniform field)
     /// - 1: Linear decay
     /// - 2: Quadratic decay (realistic for gravity)
-    public var falloff: Float = 0
+    public var falloff: CGFloat = 0
 
     /// The animation speed for noise/turbulence fields.
-    public var animationSpeed: Float = 1.0
+    public var animationSpeed: CGFloat = 1.0
 
     /// The smoothness for noise/turbulence fields.
-    public var smoothness: Float = 0.5
+    public var smoothness: CGFloat = 0.5
 
     /// The direction vector for linear gravity and velocity fields.
     ///
@@ -147,7 +147,7 @@ public final class SNFieldNode: SNNode {
     public var texture: SNTexture?
 
     /// Accumulated time for animated fields (noise/turbulence).
-    private var elapsedTime: Float = 0
+    private var elapsedTime: CGFloat = 0
 
     // MARK: - Initialization
 
@@ -191,7 +191,7 @@ public final class SNFieldNode: SNNode {
     /// - Parameters:
     ///   - smoothness: How smooth the noise is (0-1).
     ///   - animationSpeed: How fast the noise changes.
-    public static func noiseField(withSmoothness smoothness: Float, animationSpeed: Float) -> SNFieldNode {
+    public static func noiseField(withSmoothness smoothness: CGFloat, animationSpeed: CGFloat) -> SNFieldNode {
         let field = SNFieldNode(fieldType: .noise(smoothness: smoothness, animationSpeed: animationSpeed))
         field.smoothness = smoothness
         field.animationSpeed = animationSpeed
@@ -217,7 +217,7 @@ public final class SNFieldNode: SNNode {
     /// - Parameters:
     ///   - smoothness: How smooth the turbulence is (0-1).
     ///   - animationSpeed: How fast the turbulence changes.
-    public static func turbulenceField(withSmoothness smoothness: Float, animationSpeed: Float) -> SNFieldNode {
+    public static func turbulenceField(withSmoothness smoothness: CGFloat, animationSpeed: CGFloat) -> SNFieldNode {
         let field = SNFieldNode(fieldType: .turbulence(smoothness: smoothness, animationSpeed: animationSpeed))
         field.smoothness = smoothness
         field.animationSpeed = animationSpeed
@@ -264,7 +264,7 @@ public final class SNFieldNode: SNNode {
     /// Called by PhysicsWorld during simulation.
     ///
     /// - Parameter deltaTime: The time elapsed since the last update.
-    internal func update(deltaTime: Float) {
+    internal func update(deltaTime: CGFloat) {
         elapsedTime += deltaTime * animationSpeed
     }
 
@@ -288,7 +288,7 @@ public final class SNFieldNode: SNNode {
         let distance = context.position.distance(to: .zero)
 
         // Calculate distance-based falloff (SpriteKit-compatible)
-        let falloffMultiplier: Float
+        let falloffMultiplier: CGFloat
         if falloff == 0 {
             falloffMultiplier = 1.0
         } else if distance <= minimumRadius {
@@ -379,8 +379,8 @@ public final class SNFieldNode: SNNode {
             guard let tex = texture else { return .zero }
 
             // Calculate UV coordinates based on position within region
-            let u: Float
-            let v: Float
+            let u: CGFloat
+            let v: CGFloat
             if let region = region {
                 // Map position within region to UV
                 let regionSize = region.size

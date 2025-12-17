@@ -208,7 +208,7 @@ extension SNShader {
     ///
     /// - Parameter pixelSize: The size of pixels (higher = more pixelated).
     /// - Returns: A shader that pixelates the texture.
-    public static func pixelate(pixelSize: Float = 8.0) -> SNShader {
+    public static func pixelate(pixelSize: CGFloat = 8.0) -> SNShader {
         let source = """
         // Pixelate shader
         // Reduces texture resolution for a retro effect
@@ -236,7 +236,7 @@ extension SNShader {
     ///
     /// - Parameter radius: The blur radius.
     /// - Returns: A shader that applies a box blur.
-    public static func blur(radius: Float = 2.0) -> SNShader {
+    public static func blur(radius: CGFloat = 2.0) -> SNShader {
         let source = """
         // Box blur shader
         // Applies a simple box blur effect
@@ -274,7 +274,7 @@ extension SNShader {
     ///
     /// - Parameter amount: The amount of color separation.
     /// - Returns: A shader that applies chromatic aberration.
-    public static func chromaticAberration(amount: Float = 0.01) -> SNShader {
+    public static func chromaticAberration(amount: CGFloat = 0.01) -> SNShader {
         let source = """
         // Chromatic aberration shader
         // Separates RGB channels for a glitch effect

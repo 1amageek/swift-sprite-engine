@@ -273,13 +273,13 @@ public final class WebGPURenderer {
         // Create orthographic projection matrix
         // Maps (0,0)-(width,height) to (-1,-1)-(1,1)
         let left: Float = 0
-        let right = Float(canvasWidth)
+        let right = CGFloat(canvasWidth)
         let bottom: Float = 0
-        let top = Float(canvasHeight)
+        let top = CGFloat(canvasHeight)
         let near: Float = -1
         let far: Float = 1
 
-        let ortho: [Float] = [
+        let ortho: [CGFloat] = [
             2.0 / (right - left), 0, 0, 0,
             0, 2.0 / (top - bottom), 0, 0,
             0, 0, -2.0 / (far - near), 0,
@@ -290,7 +290,7 @@ public final class WebGPURenderer {
         ]
 
         // Add screen size
-        let uniforms = ortho + [Float(canvasWidth), Float(canvasHeight), 0, 0]
+        let uniforms = ortho + [CGFloat(canvasWidth), CGFloat(canvasHeight), 0, 0]
 
         let float32Array = JSObject.global.Float32Array.function!.new(uniforms.count)
         for i in 0..<uniforms.count {
@@ -388,7 +388,7 @@ public final class WebGPURenderer {
     private func uploadInstanceData(_ instances: [SpriteInstance]) {
         // Convert to flat float array
         // 20 floats per instance (80 bytes stride)
-        var floatData: [Float] = []
+        var floatData: [CGFloat] = []
         floatData.reserveCapacity(instances.count * 20)
 
         for instance in instances {

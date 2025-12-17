@@ -36,7 +36,7 @@ public final class TileDefinition {
     public var textures: [SNTexture]
 
     /// The duration each texture frame is displayed (for animated tiles).
-    public var timePerFrame: Float
+    public var timePerFrame: CGFloat
 
     /// The rotation of the tile in 90° increments.
     public var rotation: TileRotation
@@ -92,7 +92,7 @@ public final class TileDefinition {
     ///   - textures: The textures for animation frames.
     ///   - size: The size of the tile.
     ///   - timePerFrame: The duration of each frame in seconds.
-    public init(textures: [SNTexture], size: Size, timePerFrame: Float) {
+    public init(textures: [SNTexture], size: Size, timePerFrame: CGFloat) {
         self.name = nil
         self.size = size
         self.color = .white
@@ -129,11 +129,11 @@ public final class TileDefinition {
     ///
     /// - Parameter time: The elapsed time in seconds.
     /// - Returns: The texture for the current frame.
-    public func texture(at time: Float) -> SNTexture? {
+    public func texture(at time: CGFloat) -> SNTexture? {
         guard !textures.isEmpty else { return nil }
         guard isAnimated else { return textures.first }
 
-        let totalDuration = timePerFrame * Float(textures.count)
+        let totalDuration = timePerFrame * CGFloat(textures.count)
         let normalizedTime = time.truncatingRemainder(dividingBy: totalDuration)
         let frameIndex = Int(normalizedTime / timePerFrame) % textures.count
         return textures[frameIndex]

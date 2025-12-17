@@ -101,13 +101,13 @@ public final class Renderer: @unchecked Sendable {
     private var lastUpdateTime: Double = 0
 
     /// Time accumulator for fixed timestep updates.
-    private var accumulator: Float = 0
+    private var accumulator: CGFloat = 0
 
     /// Fixed timestep for deterministic updates (default: 1/60 second).
-    public var fixedTimestep: Float = 1.0 / 60.0
+    public var fixedTimestep: CGFloat = 1.0 / 60.0
 
     /// Maximum time to process per frame to prevent spiral of death.
-    public var maxFrameTime: Float = 0.25
+    public var maxFrameTime: CGFloat = 0.25
 
     // MARK: - Initialization
 
@@ -149,9 +149,9 @@ public final class Renderer: @unchecked Sendable {
         guard let scene = scene else { return }
 
         // Calculate delta time
-        let dt: Float
+        let dt: CGFloat
         if lastUpdateTime > 0 {
-            dt = Float(time - lastUpdateTime)
+            dt = CGFloat(time - lastUpdateTime)
         } else {
             dt = fixedTimestep
         }
@@ -567,12 +567,12 @@ public struct RenderTransform: Sendable {
     public var position: Point
 
     /// The rotation in radians.
-    public var rotation: Float
+    public var rotation: CGFloat
 
     /// The scale component.
     public var scale: Size
 
-    public init(position: Point = .zero, rotation: Float = 0, scale: Size = Size(width: 1, height: 1)) {
+    public init(position: Point = .zero, rotation: CGFloat = 0, scale: Size = Size(width: 1, height: 1)) {
         self.position = position
         self.rotation = rotation
         self.scale = scale
@@ -604,7 +604,7 @@ public struct RenderTransform: Sendable {
     }
 
     /// Converts to a 4x4 matrix for GPU.
-    public func toMatrix4x4() -> [Float] {
+    public func toMatrix4x4() -> [CGFloat] {
         let cosR = cos(rotation)
         let sinR = sin(rotation)
 

@@ -93,7 +93,7 @@ enum SpriteShader {
     """
 
     /// Vertex buffer layout for the quad vertices.
-    static let quadVertices: [Float] = [
+    static let quadVertices: [CGFloat] = [
         // Triangle 1
         0.0, 0.0,  // bottom-left
         1.0, 0.0,  // bottom-right

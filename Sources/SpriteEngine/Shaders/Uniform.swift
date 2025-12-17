@@ -23,12 +23,12 @@ public final class SNUniform {
 
     // MARK: - Value Storage
 
-    private var floatStorage: [Float] = []
+    private var floatStorage: [CGFloat] = []
 
     // MARK: - Float Accessors
 
     /// The uniform's value as a single float.
-    public var floatValue: Float {
+    public var floatValue: CGFloat {
         get { floatStorage.first ?? 0 }
         set {
             uniformType = .float
@@ -37,7 +37,7 @@ public final class SNUniform {
     }
 
     /// The uniform's value as a 2-component float vector.
-    public var floatVector2Value: (Float, Float) {
+    public var floatVector2Value: (CGFloat, CGFloat) {
         get {
             guard floatStorage.count >= 2 else { return (0, 0) }
             return (floatStorage[0], floatStorage[1])
@@ -49,7 +49,7 @@ public final class SNUniform {
     }
 
     /// The uniform's value as a 3-component float vector.
-    public var floatVector3Value: (Float, Float, Float) {
+    public var floatVector3Value: (CGFloat, CGFloat, CGFloat) {
         get {
             guard floatStorage.count >= 3 else { return (0, 0, 0) }
             return (floatStorage[0], floatStorage[1], floatStorage[2])
@@ -61,7 +61,7 @@ public final class SNUniform {
     }
 
     /// The uniform's value as a 4-component float vector.
-    public var floatVector4Value: (Float, Float, Float, Float) {
+    public var floatVector4Value: (CGFloat, CGFloat, CGFloat, CGFloat) {
         get {
             guard floatStorage.count >= 4 else { return (0, 0, 0, 0) }
             return (floatStorage[0], floatStorage[1], floatStorage[2], floatStorage[3])
@@ -73,7 +73,7 @@ public final class SNUniform {
     }
 
     /// The uniform's value as a 2x2 matrix (column-major order).
-    public var floatMatrix2Value: [Float] {
+    public var floatMatrix2Value: [CGFloat] {
         get { Array(floatStorage.prefix(4)) }
         set {
             uniformType = .floatMatrix2
@@ -85,7 +85,7 @@ public final class SNUniform {
     }
 
     /// The uniform's value as a 3x3 matrix (column-major order).
-    public var floatMatrix3Value: [Float] {
+    public var floatMatrix3Value: [CGFloat] {
         get { Array(floatStorage.prefix(9)) }
         set {
             uniformType = .floatMatrix3
@@ -97,7 +97,7 @@ public final class SNUniform {
     }
 
     /// The uniform's value as a 4x4 matrix (column-major order).
-    public var floatMatrix4Value: [Float] {
+    public var floatMatrix4Value: [CGFloat] {
         get { Array(floatStorage.prefix(16)) }
         set {
             uniformType = .floatMatrix4
@@ -111,7 +111,7 @@ public final class SNUniform {
     // MARK: - Raw Data Access
 
     /// Returns the raw float data for GPU upload.
-    public var floatData: [Float] {
+    public var floatData: [CGFloat] {
         floatStorage
     }
 
@@ -122,7 +122,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - float: The initial float value.
-    public init(name: String, float: Float) {
+    public init(name: String, float: CGFloat) {
         self.name = name
         self.uniformType = .float
         self.floatStorage = [float]
@@ -133,7 +133,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - floatVector2: The initial 2-component vector.
-    public init(name: String, floatVector2: (Float, Float)) {
+    public init(name: String, floatVector2: (CGFloat, CGFloat)) {
         self.name = name
         self.uniformType = .floatVector2
         self.floatStorage = [floatVector2.0, floatVector2.1]
@@ -144,7 +144,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - floatVector3: The initial 3-component vector.
-    public init(name: String, floatVector3: (Float, Float, Float)) {
+    public init(name: String, floatVector3: (CGFloat, CGFloat, CGFloat)) {
         self.name = name
         self.uniformType = .floatVector3
         self.floatStorage = [floatVector3.0, floatVector3.1, floatVector3.2]
@@ -155,7 +155,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - floatVector4: The initial 4-component vector.
-    public init(name: String, floatVector4: (Float, Float, Float, Float)) {
+    public init(name: String, floatVector4: (CGFloat, CGFloat, CGFloat, CGFloat)) {
         self.name = name
         self.uniformType = .floatVector4
         self.floatStorage = [floatVector4.0, floatVector4.1, floatVector4.2, floatVector4.3]
@@ -166,7 +166,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - floatMatrix2: The initial 2x2 matrix in column-major order.
-    public init(name: String, floatMatrix2: [Float]) {
+    public init(name: String, floatMatrix2: [CGFloat]) {
         self.name = name
         self.uniformType = .floatMatrix2
         self.floatStorage = Array(floatMatrix2.prefix(4))
@@ -180,7 +180,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - floatMatrix3: The initial 3x3 matrix in column-major order.
-    public init(name: String, floatMatrix3: [Float]) {
+    public init(name: String, floatMatrix3: [CGFloat]) {
         self.name = name
         self.uniformType = .floatMatrix3
         self.floatStorage = Array(floatMatrix3.prefix(9))
@@ -194,7 +194,7 @@ public final class SNUniform {
     /// - Parameters:
     ///   - name: The uniform name in the shader.
     ///   - floatMatrix4: The initial 4x4 matrix in column-major order.
-    public init(name: String, floatMatrix4: [Float]) {
+    public init(name: String, floatMatrix4: [CGFloat]) {
         self.name = name
         self.uniformType = .floatMatrix4
         self.floatStorage = Array(floatMatrix4.prefix(16))

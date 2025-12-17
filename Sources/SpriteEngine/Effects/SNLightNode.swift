@@ -54,7 +54,7 @@ public final class SNLightNode: SNNode {
     /// - 0: No falloff (constant intensity)
     /// - 1: Linear falloff
     /// - 2: Quadratic falloff (physically realistic)
-    public var falloff: Float = 1.0
+    public var falloff: CGFloat = 1.0
 
     // MARK: - Light Type
 
@@ -63,22 +63,22 @@ public final class SNLightNode: SNNode {
 
     /// The direction of directional lights (in radians).
     /// Only used when `lightType` is `.directional`.
-    public var direction: Float = 0
+    public var direction: CGFloat = 0
 
     /// The cone angle for spot lights (in radians).
     /// Only used when `lightType` is `.spot`.
-    public var spotAngle: Float = .pi / 4
+    public var spotAngle: CGFloat = .pi / 4
 
     // MARK: - Range
 
     /// The maximum distance the light affects.
     /// Set to 0 for unlimited range.
-    public var range: Float = 0
+    public var range: CGFloat = 0
 
     // MARK: - Intensity
 
     /// The intensity multiplier for the light.
-    public var intensity: Float = 1.0
+    public var intensity: CGFloat = 1.0
 
     // MARK: - Normal Map Support
 
@@ -105,7 +105,7 @@ public final class SNLightNode: SNNode {
     ///
     /// - Parameter point: The point to calculate intensity for.
     /// - Returns: The light intensity at that point (0-1).
-    public func intensity(at point: Point) -> Float {
+    public func intensity(at point: CGPoint) -> CGFloat {
         guard isEnabled else { return 0 }
 
         let lightPos = worldPosition
@@ -119,7 +119,7 @@ public final class SNLightNode: SNNode {
         }
 
         // Calculate base intensity with falloff
-        var result: Float = intensity
+        var result: CGFloat = intensity
         if falloff > 0 && distance > 0 {
             result /= pow(distance, falloff)
         }
@@ -139,7 +139,7 @@ public final class SNLightNode: SNNode {
         return min(1, max(0, result))
     }
 
-    private func normalizeAngle(_ angle: Float) -> Float {
+    private func normalizeAngle(_ angle: CGFloat) -> CGFloat {
         var result = angle
         while result > .pi {
             result -= 2 * .pi
@@ -177,8 +177,8 @@ extension SNLightNode {
     /// - Returns: A configured point light.
     public static func pointLight(
         color: Color = .white,
-        intensity: Float = 1.0,
-        falloff: Float = 1.0
+        intensity: CGFloat = 1.0,
+        falloff: CGFloat = 1.0
     ) -> SNLightNode {
         let light = SNLightNode()
         light.lightType = .point
@@ -197,8 +197,8 @@ extension SNLightNode {
     /// - Returns: A configured directional light.
     public static func directionalLight(
         color: Color = .white,
-        direction: Float = -.pi / 2,
-        intensity: Float = 1.0
+        direction: CGFloat = -.pi / 2,
+        intensity: CGFloat = 1.0
     ) -> SNLightNode {
         let light = SNLightNode()
         light.lightType = .directional
@@ -220,10 +220,10 @@ extension SNLightNode {
     /// - Returns: A configured spot light.
     public static func spotLight(
         color: Color = .white,
-        direction: Float = -.pi / 2,
-        spotAngle: Float = .pi / 4,
-        intensity: Float = 1.0,
-        falloff: Float = 1.0
+        direction: CGFloat = -.pi / 2,
+        spotAngle: CGFloat = .pi / 4,
+        intensity: CGFloat = 1.0,
+        falloff: CGFloat = 1.0
     ) -> SNLightNode {
         let light = SNLightNode()
         light.lightType = .spot

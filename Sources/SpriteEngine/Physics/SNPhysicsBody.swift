@@ -35,10 +35,10 @@ public final class SNPhysicsBody: @unchecked Sendable {
         case rectangleWithCenter(size: Size, center: Point)
 
         /// A circular shape centered on the node's origin.
-        case circle(radius: Float)
+        case circle(radius: CGFloat)
 
         /// A circular shape centered on a specific point.
-        case circleWithCenter(radius: Float, center: Point)
+        case circleWithCenter(radius: CGFloat, center: Point)
 
         /// An edge loop (static, for boundaries).
         case edgeLoop(Rect)
@@ -77,7 +77,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// The mass of the body in kilograms.
     ///
     /// When set, automatically recalculates `density` based on `area`.
-    public var mass: Float = 1.0 {
+    public var mass: CGFloat = 1.0 {
         didSet {
             if area > 0 {
                 _density = mass / area
@@ -88,19 +88,19 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// The density of the object, in kilograms per square meter.
     ///
     /// When set, automatically recalculates `mass` based on `area`.
-    public var density: Float {
+    public var density: CGFloat {
         get { _density }
         set {
             _density = newValue
             mass = newValue * area
         }
     }
-    private var _density: Float = 1.0
+    private var _density: CGFloat = 1.0
 
     /// The area covered by the body in square points.
     ///
     /// This is a read-only property calculated from the shape.
-    public var area: Float {
+    public var area: CGFloat {
         switch shape {
         case .rectangle(let size), .rectangleWithCenter(let size, _):
             return size.width * size.height
@@ -116,20 +116,20 @@ public final class SNPhysicsBody: @unchecked Sendable {
     }
 
     /// The friction coefficient (0 = frictionless, 1 = high friction).
-    public var friction: Float = 0.2
+    public var friction: CGFloat = 0.2
 
     /// The restitution (bounciness, 0 = no bounce, 1 = perfect bounce).
-    public var restitution: Float = 0.0
+    public var restitution: CGFloat = 0.0
 
     /// Linear damping (air resistance, 0 = none).
     ///
     /// A property that reduces the body's linear velocity.
-    public var linearDamping: Float = 0.1
+    public var linearDamping: CGFloat = 0.1
 
     /// Angular damping (rotational resistance, 0 = none).
     ///
     /// A property that reduces the body's rotational velocity.
-    public var angularDamping: Float = 0.1
+    public var angularDamping: CGFloat = 0.1
 
     // MARK: - Velocity
 
@@ -137,7 +137,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     public var velocity: Vector2 = .zero
 
     /// The angular velocity in radians per second.
-    public var angularVelocity: Float = 0
+    public var angularVelocity: CGFloat = 0
 
     // MARK: - Collision Categories
 
@@ -163,7 +163,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// The electrical charge of the physics body.
     ///
     /// Used by electric and magnetic field nodes.
-    public var charge: Float = 0.0
+    public var charge: CGFloat = 0.0
 
     // MARK: - Pinning
 
@@ -214,7 +214,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// Creates a circular physics body centered on the owning node's origin.
     ///
     /// - Parameter radius: The radius of the circle.
-    public init(circleOfRadius radius: Float) {
+    public init(circleOfRadius radius: CGFloat) {
         self.shape = .circle(radius: radius)
         self.centerOffset = .zero
     }
@@ -224,7 +224,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// - Parameters:
     ///   - radius: The radius of the circle.
     ///   - center: The center point relative to the node's origin.
-    public init(circleOfRadius radius: Float, center: Point) {
+    public init(circleOfRadius radius: CGFloat, center: Point) {
         self.shape = .circleWithCenter(radius: radius, center: center)
         self.centerOffset = center
     }
@@ -340,7 +340,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// Applies torque to the body.
     ///
     /// - Parameter torque: The torque in Newton-meters.
-    public func applyTorque(_ torque: Float) {
+    public func applyTorque(_ torque: CGFloat) {
         guard isDynamic && allowsRotation else { return }
         // Simplified moment of inertia (assumes uniform density)
         let momentOfInertia = mass * area / 12.0  // Rough approximation
@@ -391,7 +391,7 @@ public final class SNPhysicsBody: @unchecked Sendable {
     /// Applies an impulse that imparts angular momentum to the body.
     ///
     /// - Parameter impulse: The angular impulse in Newton-meter-seconds.
-    public func applyAngularImpulse(_ impulse: Float) {
+    public func applyAngularImpulse(_ impulse: CGFloat) {
         guard isDynamic && allowsRotation else { return }
         let momentOfInertia = mass * area / 12.0
         if momentOfInertia > 0 {
@@ -477,8 +477,8 @@ public final class SNPhysicsBody: @unchecked Sendable {
             }
             return Size(width: (maxX - minX) / 2, height: (maxY - minY) / 2)
         case .compound(let bodies):
-            var maxWidth: Float = 0
-            var maxHeight: Float = 0
+            var maxWidth: CGFloat = 0
+            var maxHeight: CGFloat = 0
             for body in bodies {
                 let half = body.boundingBoxHalfSize
                 maxWidth = max(maxWidth, half.width)
@@ -490,9 +490,9 @@ public final class SNPhysicsBody: @unchecked Sendable {
 
     // MARK: - Helper Methods
 
-    private func calculatePolygonArea(_ path: [Point]) -> Float {
+    private func calculatePolygonArea(_ path: [Point]) -> CGFloat {
         guard path.count >= 3 else { return 0 }
-        var area: Float = 0
+        var area: CGFloat = 0
         let n = path.count
         for i in 0..<n {
             let j = (i + 1) % n
@@ -554,7 +554,7 @@ extension SNPhysicsBody {
     ///
     /// - Parameter radius: The radius of the circle.
     /// - Returns: A static physics body.
-    public static func staticBody(circleOfRadius radius: Float) -> SNPhysicsBody {
+    public static func staticBody(circleOfRadius radius: CGFloat) -> SNPhysicsBody {
         let body = SNPhysicsBody(circleOfRadius: radius)
         body.isDynamic = false
         body.affectedByGravity = false

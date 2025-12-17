@@ -21,7 +21,7 @@
 /// - **SNSpriteNode**: Use a textured sprite for per-pixel masking
 /// - **Solid Color SNSpriteNode**: Creates a rectangular mask
 /// - **Multiple Nodes**: Combine nodes to create complex mask shapes
-public final class SNCropNode: SNNode {
+public final class SNCropNode: SNEffectNode {
     // MARK: - Mask
 
     /// The node used to determine the crop mask.
@@ -66,10 +66,10 @@ public final class SNCropNode: SNNode {
     public func createBoundingMask() -> SNSpriteNode? {
         guard !children.isEmpty else { return nil }
 
-        var minX: Float = .greatestFiniteMagnitude
-        var minY: Float = .greatestFiniteMagnitude
-        var maxX: Float = -.greatestFiniteMagnitude
-        var maxY: Float = -.greatestFiniteMagnitude
+        var minX: CGFloat = .greatestFiniteMagnitude
+        var minY: CGFloat = .greatestFiniteMagnitude
+        var maxX: CGFloat = -.greatestFiniteMagnitude
+        var maxY: CGFloat = -.greatestFiniteMagnitude
 
         for child in children {
             let frame = child.frame
@@ -79,9 +79,9 @@ public final class SNCropNode: SNNode {
             maxY = max(maxY, frame.maxY)
         }
 
-        let size = Size(width: maxX - minX, height: maxY - minY)
+        let size = CGSize(width: maxX - minX, height: maxY - minY)
         let mask = SNSpriteNode(color: .white, size: size)
-        mask.position = Point(x: (minX + maxX) / 2, y: (minY + maxY) / 2)
+        mask.position = CGPoint(x: (minX + maxX) / 2, y: (minY + maxY) / 2)
         return mask
     }
 
